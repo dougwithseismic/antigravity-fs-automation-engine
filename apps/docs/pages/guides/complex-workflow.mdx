@@ -1,0 +1,73 @@
+# Guide: Complex PPC Landing Page Workflow
+
+This guide demonstrates a real-world hybrid workflow: a **PPC Landing Page** that personalizes content and captures leads.
+
+## The Scenario
+
+1.  A user clicks a Google Ad and lands on your site (`?utm_source=ppc`).
+2.  The site detects the PPC traffic and triggers a workflow.
+3.  **Server**: Verifies the traffic source.
+4.  **Client**: Displays a special "10% Off" banner with an email form.
+5.  **User**: Submits their email.
+6.  **Server**: Logs the lead to the database and generates a unique discount code.
+7.  **Client**: Displays the discount code to the user.
+
+## Workflow Definition
+
+### Nodes
+
+| ID | Type | Environment | Description |
+|----|------|-------------|-------------|
+| 1 | `start` | Server | Triggered on page load. |
+| 2 | `condition` | Server | Checks if `input.query.utm_source === 'ppc'`. |
+| 3 | `banner-form` | **Client** | Renders the banner UI and waits for submission. |
+| 4 | `analytics` | Server | Logs the `lead_captured` event. |
+| 5 | `discount` | Server | Generates a code (e.g., `SAVE10`). |
+| 6 | `window-alert` | **Client** | Shows the code to the user. |
+
+### Edges
+
+-   `1 -> 2`
+-   `2 -> 3` (Condition: True)
+-   `3 -> 4`
+-   `4 -> 5`
+-   `5 -> 6`
+
+## Implementation Steps
+
+### 1. Server-Side Nodes
+Implement `Condition`, `Analytics`, and `Discount` nodes in your API.
+
+```typescript
+// apps/api/src/execution/nodes/ppc.ts
+export const ConditionNodeExecutor = { ... };
+export const AnalyticsNodeExecutor = { ... };
+export const DiscountNodeExecutor = { ... };
+```
+
+### 2. Client-Side Nodes
+Implement the `BannerNode` in your React app. This node should render a UI component and resolve its promise when the user submits the form.
+
+```typescript
+// apps/demo-react/src/App.tsx
+const BannerNode: ClientNode = {
+  type: 'banner-form',
+  execute: async ({ input }) => {
+    // Trigger UI to show banner
+    // Wait for user input
+    return new Promise(resolve => { ... });
+  }
+};
+```
+
+### 3. Execution
+Trigger the workflow on page load.
+
+```typescript
+const input = { query: { utm_source: 'ppc' } };
+engine.execute({ workflowId, input });
+```
+
+## Visualizing the Flow
+
+In our demo app, you can see the "packet" of execution moving between the **Server** (Cloud) and **Client** (Browser) in real-time as the workflow progresses through these steps.

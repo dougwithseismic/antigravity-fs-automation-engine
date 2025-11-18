@@ -1,0 +1,9 @@
+import { defineConfig } from 'vitest/config';
+
+export const baseConfig = defineConfig({
+    test: {
+        globals: true,
+        environment: 'node',
+        passWithNoTests: true,
+    },
+});

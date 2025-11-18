@@ -1,0 +1,78 @@
+# React SDK
+
+The `@antigravity/client-sdk/react` package provides custom hooks and a context provider to easily integrate Antigravity workflows into your React applications.
+
+## Installation
+
+```bash
+pnpm add @antigravity/client-sdk react react-dom
+```
+
+## Setup
+
+Wrap your application (or the part that needs workflows) with the `AntigravityProvider`.
+
+```tsx
+import { ClientEngine } from '@antigravity/client-sdk';
+import { AntigravityProvider } from '@antigravity/client-sdk/react';
+
+const engine = new ClientEngine('http://localhost:3002');
+
+// Register your client nodes here
+// engine.registerNode(...)
+
+function App() {
+  return (
+    <AntigravityProvider engine={engine}>
+      <YourComponent />
+    </AntigravityProvider>
+  );
+}
+```
+
+## `useWorkflow` Hook
+
+The `useWorkflow` hook manages the execution state of a workflow.
+
+```tsx
+import { useWorkflow } from '@antigravity/client-sdk/react';
+
+function SignupFlow() {
+  const { start, status, currentStep, data, error, isLoading } = useWorkflow('signup-workflow-id');
+
+  if (status === 'idle') {
+    return <button onClick={() => start({ email: 'test@example.com' })}>Start Signup</button>;
+  }
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (status === 'waiting' && currentStep) {
+    // Render the UI based on the current step type
+    if (currentStep.type === 'verify-email') {
+      return <VerifyEmailScreen data={currentStep.data} />;
+    }
+    return <div>Unknown step: {currentStep.type}</div>;
+  }
+
+  if (status === 'completed') {
+    return <div>Signup Complete! User ID: {data.userId}</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
+  return null;
+}
+```
+
+### Return Values
+
+- **`start(input)`**: Function to start the workflow with optional input.
+- **`status`**: Current state: `'idle' | 'running' | 'waiting' | 'completed' | 'failed'`.
+- **`currentStep`**: The current node definition when status is `'waiting'`.
+- **`data`**: The final result when status is `'completed'`.
+- **`error`**: Error message if status is `'failed'`.
+- **`isLoading`**: Boolean indicating if the engine is processing (server or client side).

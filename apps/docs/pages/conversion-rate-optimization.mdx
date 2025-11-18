@@ -1,0 +1,46 @@
+# Conversion Rate Optimization (CRO)
+
+Conversion Rate Optimization (CRO) is the systematic process of increasing the percentage of website visitors who take a desired action—be it filling out a form, becoming a customer, or otherwise engaging with your content.
+
+Antigravity changes the game by allowing you to implement CRO strategies **without touching your core codebase**.
+
+## The Antigravity Approach
+
+Traditional CRO often requires waiting for engineering cycles to deploy simple changes. Antigravity moves this logic to the browser, empowering growth teams to move fast.
+
+### 1. Friction Reduction
+Identify where users are getting stuck and deploy instant fixes.
+- **Form Analytics**: Trigger workflows when users spend too long on a specific field.
+- **Error Handling**: Automatically show helpful tooltips or chat widgets when a user encounters a validation error multiple times.
+
+### 2. Smart Incentives
+Don't just offer a discount to everyone. Use Antigravity to offer incentives only when necessary.
+- **Exit Intent**: Detect cursor movement towards the browser chrome and trigger a "Wait! Don't go" modal.
+- **Idle Detection**: If a user has been staring at the pricing page for 60 seconds, trigger a workflow to slide in a "Need help deciding?" chat prompt.
+
+## Implementing CRO Workflows
+
+### Step 1: Define the Trigger
+Every optimization starts with a user action.
+- `Page Load`
+- `Element Click`
+- `Scroll Depth`
+- `Inactivity`
+
+### Step 2: Analyze Context
+Use **Condition Nodes** to check the state of the user.
+- Is this a returning visitor?
+- Do they have items in their cart?
+- What device are they using?
+
+### Step 3: Execute Action
+Modify the DOM or trigger external events.
+- `Inject HTML`: Add a banner or modal.
+- `Modify Style`: Highlight a button.
+- `Send Event`: Log the interaction to your analytics provider (Segment, GA4, Mixpanel).
+
+## Best Practices
+
+1.  **One Goal Per Workflow**: Keep your workflows focused on a single KPI.
+2.  **Non-Intrusive**: Avoid blocking the user's main path unless absolutely necessary.
+3.  **Measure Everything**: Always connect your workflows to an analytics node to track performance.

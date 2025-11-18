@@ -1,0 +1,114 @@
+# Client SDK
+
+The `@antigravity/client-sdk` enables your frontend applications to participate in hybrid workflows. It handles the "Hot Potato" protocol, executing client-side nodes and communicating with the Antigravity API.
+
+## Installation
+
+```bash
+pnpm add @antigravity/client-sdk
+```
+
+## Usage
+
+### 1. Initialize the Engine
+
+```typescript
+import { ClientEngine } from '@antigravity/client-sdk';
+
+const engine = new ClientEngine('http://localhost:3002');
+```
+
+### 2. Register Client Nodes
+
+Define what your client can do. Each node type in your workflow that runs on the client must have a corresponding registered executor.
+
+```typescript
+import type { ClientNode } from '@antigravity/client-sdk';
+
+const AlertNode: ClientNode = {
+  id: 'window-alert', // Unique ID for this implementation
+  type: 'window-alert', // Matches the workflow node type
+  data: {},
+  execute: async ({ input }) => {
+    alert(input.message);
+    return { status: 'success', output: { confirmed: true } };
+  }
+};
+
+engine.registerNode(AlertNode);
+```
+
+### 3. Execute a Workflow
+
+Start a workflow and let the SDK handle the back-and-forth.
+
+```typescript
+await engine.execute({
+  workflowId: 'workflow-id-123', 
+  input: { initial: 'data' }, 
+  onProgress: (stage, data) => {
+    console.log(`Current Stage: ${stage}`, data);
+    // Use this callback to update your UI (e.g. show loading spinners)
+  }
+});
+```
+
+## API Reference
+
+### `ClientNode` Interface
+
+The interface for defining client-side capabilities.
+
+```typescript
+interface ClientNode {
+    /** Unique identifier for this node implementation */
+    id: string;
+    /** The node type this executor handles (must match workflow definition) */
+    type: string;
+    /** Static configuration data for the node */
+    data: Record<string, any>;
+    /** 
+     * The execution logic.
+     * @param input - Data passed from the previous node or server
+     * @returns Promise resolving to the output data
+     */
+    execute(args: { input: any }): Promise<any>;
+}
+```
+
+### `ClientEngine` Class
+
+#### `constructor(apiUrl: string)`
+Creates a new instance of the engine pointing to the Antigravity API.
+
+#### `registerNode(node: ClientNode): void`
+Registers a client-side node executor. The engine will use this to handle specific node types when the server requests them.
+
+#### `execute({ workflowId, input, onProgress }: { workflowId: string, input?: any, onProgress?: (stage: string, data?: any) => void }): Promise<any>`
+Starts a workflow execution.
+
+- **workflowId**: The ID of the workflow to execute.
+- **input**: Initial input data for the workflow.
+- **onProgress**: Optional callback to track execution stages:
+    - `start`: Execution starting.
+    - `server-processing`: Server is running nodes.
+    - `client-handoff`: Server suspended and requested client action.
+    - `client-processing`: Client is executing a node.
+    - `server-resume`: Client sending results back to server.
+    - `complete`: Workflow finished.
+
+## The "Hot Potato" Protocol
+
+1.  **Start**: Client calls API to start workflow.
+2.  **Server Processing**: Server runs nodes until it hits a Client Node.
+3.  **Handoff**: Server returns `status: 'waiting'` and the `nextStep` (Client Node).
+4.  **Client Execution**: SDK finds the registered node for `nextStep.type` and runs it.
+5.  **Resume**: SDK calls API to resume execution with the node's result.
+6.  **Loop**: Repeats until the workflow is complete.
+
+## Error Handling
+
+The SDK throws errors in the following cases:
+- **Network Errors**: Failure to communicate with the API.
+- **Missing Node**: The server requested a node type that hasn't been registered via `registerNode`.
+- **Execution Failure**: The API returns a failure status or a client node throws an exception.

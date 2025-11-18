@@ -1,0 +1,78 @@
+# Workflow Examples
+
+Antigravity is flexible enough to handle various types of workflows. Here are a few common patterns.
+
+## 1. Server-Only Workflow (Backend Automation)
+
+This is a traditional workflow that runs entirely on the server without user intervention.
+
+**Use Case**: Data processing, nightly jobs, webhook handling.
+
+```mermaid
+graph LR
+    A[Start] --> B[Fetch Data]
+    B --> C{Condition}
+    C -- Yes --> D[Update DB]
+    C -- No --> E[Log Skip]
+```
+
+**Nodes used**:
+- `start`: Triggered via API or Schedule.
+- `http-request`: Fetch data from external API.
+- `condition`: Check data values.
+- `database-update`: Write to database.
+
+## 2. Client-Only Workflow (Frontend Wizard)
+
+You can use the engine to orchestrate complex frontend logic, keeping your UI components simple and focused.
+
+**Use Case**: Multi-step signup form, product configurator.
+
+```mermaid
+graph LR
+    A[Start] --> B[Step 1: Personal Info]
+    B --> C[Step 2: Preferences]
+    C --> D[Step 3: Review]
+    D --> E[Submit]
+```
+
+**Nodes used**:
+- `start`: Triggered by user click.
+- `form-step`: Custom client node rendering a form.
+- `validation`: Client-side validation node.
+
+## 3. Hybrid Workflow ("The Hot Potato")
+
+This is where Antigravity shines. Execution jumps between server and client.
+
+**Use Case**: User Signup with Email Verification and Onboarding.
+
+```mermaid
+sequenceDiagram
+    participant Server
+    participant Client
+    participant User
+
+    User->>Client: Clicks "Signup"
+    Client->>Server: Start Workflow
+    Server->>Server: Create User Record
+    Server->>Server: Send Verification Email
+    Server->>Client: Suspend (Wait for Verification)
+    Note over Client: User checks email...
+    User->>Client: Clicks Link in Email
+    Client->>Server: Resume Workflow (Token)
+    Server->>Server: Verify Token
+    Server->>Client: Suspend (Show Onboarding)
+    Client->>User: Show "Welcome" Modal
+    User->>Client: Completes Onboarding
+    Client->>Server: Resume Workflow
+    Server->>Server: Mark Active
+    Server->>Server: Complete
+```
+
+**Nodes used**:
+- `server`: Create User, Send Email.
+- `client`: Wait for Link Click (or specialized `wait-for-event` node).
+- `server`: Verify Token.
+- `client`: Onboarding Modal.
+- `server`: Finalize.

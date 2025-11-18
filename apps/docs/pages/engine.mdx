@@ -1,0 +1,82 @@
+# Antigravity Engine
+
+The **Antigravity Engine** is a powerful, graph-based workflow orchestration engine designed for hybrid execution environments. It seamlessly manages state across server-side logic and client-side interactions.
+
+## Key Features
+
+-   **Graph-Based Execution**: Workflows are defined as directed graphs of nodes and edges.
+-   **Hybrid Execution ("Hot Potato")**: Execution can suspend on the server, hand off to a client (browser/device), and resume on the server with the result.
+-   **Stateful & Resumable**: Every step is persisted. Workflows can be paused for days (e.g., waiting for human approval) and resumed without data loss.
+-   **Idempotency**: Re-running a completed step returns the cached result, ensuring safety.
+
+## Architecture
+
+The engine operates on a `Workflow` definition and creates `Execution` instances.
+
+### Workflow Definition
+A JSON structure defining `nodes` and `edges`.
+
+```json
+{
+  "nodes": [
+    { "id": "1", "type": "start" },
+    { "id": "2", "type": "condition", "data": { ... } }
+  ],
+  "edges": [
+    { "source": "1", "target": "2" }
+  ]
+}
+```
+
+### Execution Flow
+1.  **Start**: `POST /workflows/{id}/execute`
+2.  **Traversal**: The engine traverses the graph (BFS).
+3.  **Execution**: Each node is executed by a registered `NodeExecutor`.
+4.  **Suspension**: If a node returns `status: 'suspended'`, the engine halts and saves state.
+5.  **Resumption**: `POST /executions/{id}/resume` continues execution from the suspended node.
+
+## Node Types
+
+The engine supports various node types, each with specific behaviors and data requirements.
+
+### Core Nodes
+-   **`start`**: The entry point of a workflow. Passes initial input to subsequent nodes.
+-   **`webhook`**: Acts as a trigger or data receiver (simulated).
+-   **`console-log`**: Logs messages to the server console for debugging.
+    -   Data: `{ message: string }`
+
+### Logic & Control Flow
+-   **`condition`**: Evaluates a condition against the input data.
+    -   Data: `{ condition: { key: string, value: string, operator?: 'equals' | 'contains' } }`
+    -   Output: `{ result: boolean }`
+
+### Domain Specific
+-   **`analytics`**: Logs an analytics event.
+    -   Data: `{ eventName: string }`
+-   **`discount`**: Generates a discount code.
+    -   Data: `{ type?: string, amount?: number }` (Optional)
+
+### Human & Client Interaction
+-   **`human-approval`**: Suspends execution until a human manually approves via API.
+-   **`client`** (Generic): Any node with `environment: 'client'` will suspend execution and request the client SDK to handle it.
+
+## Data Validation
+
+The engine enforces strict validation on workflow definitions using **Zod** schemas to ensure runtime safety.
+
+### Node Data Requirements
+
+| Node Type | Required Data | Schema |
+|-----------|---------------|--------|
+| `condition` | `condition: { key, value }` | `z.object({ condition: z.object({ key: z.string(), value: z.string() }) })` |
+| `analytics` | `eventName` | `z.object({ eventName: z.string() })` |
+| `discount` | *Optional* | `z.object({ type: z.string().optional(), amount: z.number().optional() })` |
+
+Invalid workflows will be rejected by the API with a `400 Bad Request` error.
+
+## Execution Lifecycle
+
+1.  **Validation**: Upon start, the engine validates the entire workflow graph structure and node data.
+2.  **Idempotency Check**: Before running any node, the engine checks if it has already been successfully executed for this execution ID. If so, it skips execution and uses the cached output.
+3.  **Suspension**: When a `client` node or `human-approval` node is encountered, the engine persists the current state to the database and returns a `waiting` status.
+4.  **Resumption**: When `resumeExecution` is called, the engine marks the suspended step as completed with the provided output and continues traversal from that node's children.

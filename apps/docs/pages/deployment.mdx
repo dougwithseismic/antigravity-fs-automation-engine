@@ -1,0 +1,113 @@
+# Deployment Guide
+
+This guide covers how to deploy the Antigravity stack (API and Web App) to production.
+
+## Prerequisites
+
+Before deploying, ensure you have the following:
+
+- **Docker**: For containerizing the applications.
+- **PostgreSQL Database**: A production-ready database (e.g., AWS RDS, Supabase, Neon).
+- **Node.js 20+**: For local development and build processes.
+
+## Environment Variables
+
+You need to configure the following environment variables for your production environment.
+
+### API (`apps/api`)
+
+| Variable | Description | Example |
+| :--- | :--- | :--- |
+| `PORT` | Port to listen on | `3000` |
+| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@host:5432/db` |
+| `API_KEY` | Secret key for securing the API | `your-secret-key-123` |
+| `ALLOWED_ORIGINS` | Comma-separated list of allowed CORS origins | `https://your-app.com,https://admin.your-app.com` |
+
+### Web App (`apps/web`)
+
+| Variable | Description | Example |
+| :--- | :--- | :--- |
+| `NEXT_PUBLIC_API_URL` | URL of your deployed API | `https://api.your-app.com` |
+
+## Docker Deployment
+
+We provide `Dockerfile`s for both the API and Web applications. These are optimized for production using multi-stage builds.
+
+### Building the API Image
+
+```bash
+docker build -f apps/api/Dockerfile -t antigravity-api .
+```
+
+### Building the Web Image
+
+```bash
+docker build -f apps/web/Dockerfile -t antigravity-web .
+```
+
+### Running with Docker Compose (Example)
+
+You can use `docker-compose` to orchestrate the services locally or on a VPS.
+
+```yaml
+version: '3.8'
+
+services:
+  api:
+    image: antigravity-api
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/antigravity
+      - API_KEY=secret
+      - ALLOWED_ORIGINS=http://localhost:3000
+    ports:
+      - "3002:3002"
+    depends_on:
+      - db
+
+  web:
+    image: antigravity-web
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:3002
+    ports:
+      - "3000:3000"
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=antigravity
+```
+
+## CI/CD
+
+This project includes GitHub Actions workflows for Continuous Integration (CI) and Continuous Deployment (CD).
+
+- **CI (`.github/workflows/ci.yml`)**: Runs on every push to `main`. It performs linting, type checking, testing, and verifies the build.
+- **CD (`.github/workflows/cd.yml`)**: Runs on push to `main` after CI passes. You can configure this workflow to push your Docker images to a registry (e.g., Docker Hub, GHCR) and trigger a deployment on your hosting provider.
+
+## Hosting Providers
+
+### Fly.io
+
+1. Install `flyctl`.
+2. Run `fly launch` in `apps/api` and `apps/web` directories.
+3. Set secrets using `fly secrets set`.
+4. Deploy using `fly deploy`.
+
+### Vercel (Web App Only)
+
+The `apps/web` is a Next.js application and can be easily deployed to Vercel.
+
+1. Connect your GitHub repository to Vercel.
+2. Configure the Root Directory to `apps/web`.
+3. Set the `NEXT_PUBLIC_API_URL` environment variable.
+4. Deploy.
+
+> **Note**: The API (`apps/api`) is a Node.js server and cannot be deployed to Vercel Serverless Functions directly without adaptation. It is recommended to host the API on a container platform like Fly.io, Railway, or AWS ECS.

@@ -1,0 +1,10 @@
+{
+    "name": "@repo/types",
+    "exports": {
+        ".": "./src/index.ts"
+    },
+    "devDependencies": {
+        "@repo/typescript-config": "workspace:*",
+        "typescript": "^5.0.0"
+    }
+}
