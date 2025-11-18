@@ -1,0 +1,44 @@
+# Database & Seeding
+
+Antigravity uses a **PostgreSQL** database managed by **Supabase** and **Drizzle ORM**.
+
+## Schema
+
+The database schema is defined in `packages/database/src/schema.ts`.
+
+### Core Tables
+
+-   **`workflows`**: Stores workflow definitions (nodes, edges).
+-   **`executions`**: Tracks individual runs of a workflow.
+-   **`execution_steps`**: Logs the state and result of each node execution.
+
+## Seeding & Resetting
+
+We provide utility scripts to manage the database state during development.
+
+### Resetting the Database ("Nuke")
+
+To completely wipe the database and start fresh:
+
+```bash
+pnpm db:reset
+```
+
+> [!WARNING]
+> This command **truncates all tables** (`workflows`, `executions`, `execution_steps`). All data will be lost.
+
+### Seeding Data
+
+To populate the database with initial test data (e.g., the PPC Workflow):
+
+```bash
+pnpm db:seed
+```
+
+This script reads workflow definitions from `packages/database/src/seeds/` and inserts them into the `workflows` table.
+
+### Adding New Seeds
+
+1.  Create a new file in `packages/database/src/seeds/`.
+2.  Export the workflow definition object.
+3.  Import and use it in `packages/database/src/seed.ts`.

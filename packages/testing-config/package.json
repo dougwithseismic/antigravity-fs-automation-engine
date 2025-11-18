@@ -4,8 +4,11 @@
     "type": "module",
     "private": true,
     "files": [
-        "vitest.config.ts"
+        "vitest.config.js"
     ],
+    "exports": {
+        "./vitest.config": "./vitest.config.js"
+    },
     "devDependencies": {
         "vitest": "^1.0.0"
     }

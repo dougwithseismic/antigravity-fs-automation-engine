@@ -12,6 +12,21 @@ jobs:
     timeout-minutes: 15
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: antigravity
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -52,8 +67,17 @@ jobs:
       - name: Type Check
         run: pnpm check-types
 
+      - name: Setup Database
+        run: |
+          pnpm db:reset
+          pnpm db:seed
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/antigravity
+
       - name: Test
         run: pnpm test
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/antigravity
 
       - name: Build
         run: pnpm build

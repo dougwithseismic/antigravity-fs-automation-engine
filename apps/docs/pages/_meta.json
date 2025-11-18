@@ -2,6 +2,7 @@
     "index": "Introduction",
     "examples": "Examples",
     "engine": "Antigravity Engine",
+    "database": "Database & Seeding",
     "client-sdk": "Client SDK",
     "react-sdk": "React SDK",
     "deployment": "Deployment",

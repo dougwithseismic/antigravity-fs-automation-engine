@@ -16,6 +16,8 @@
         "@types/node": "^20.0.0"
     },
     "scripts": {
-        "db:push": "drizzle-kit push:pg"
+        "db:push": "drizzle-kit push:pg",
+        "db:reset": "tsx src/reset.ts",
+        "db:seed": "tsx src/seed.ts"
     }
 }
