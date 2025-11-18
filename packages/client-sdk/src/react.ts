@@ -87,41 +87,44 @@ export interface UseWorkflowResult {
     submit: (data: any) => void;
 }
 
-export const useWorkflow = (workflowId: string): UseWorkflowResult => {
-    const { engine, activeNode, submitStep } = useAntigravity();
-    const [status, setStatus] = useState<UseWorkflowResult['status']>('idle');
-    const [data, setData] = useState<any>(null);
+type WorkflowStatus = 'idle' | 'running' | 'waiting' | 'completed' | 'failed';
+
+export function useWorkflow<TInput = any, TOutput = any>(workflowId: string) {
+    const { engine, submitStep } = useAntigravity();
+    const [status, setStatus] = useState<WorkflowStatus>('idle');
+    const [currentStep, setCurrentStep] = useState<ClientNode | null>(null);
+    const [data, setData] = useState<TOutput | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
 
-    // Derived state
-    const isLoading = status === 'running';
-    const currentStep = activeNode; // Global active node from context
-
-    const start = useCallback(async (input: any = {}) => {
+    const start = useCallback(async (input?: TInput) => {
         setStatus('running');
+        setIsLoading(true);
         setError(null);
         setData(null);
 
         try {
-            await engine.execute({
+            const result = await engine.execute<TInput, TOutput>({
                 workflowId,
                 input,
-                onProgress: (stage: string, eventData: any) => {
+                onProgress: (stage, data) => {
                     if (stage === 'client-handoff') {
                         setStatus('waiting');
-                    } else if (stage === 'client-processing') {
-                        // Handled by ReactNode execution
+                        setCurrentStep(data); // data is the node definition
                     } else if (stage === 'server-resume') {
                         setStatus('running');
-                    } else if (stage === 'complete') {
-                        setStatus('completed');
-                        setData(eventData.result);
+                        setCurrentStep(null);
                     }
                 }
             });
+
+            setStatus('completed');
+            setData(result);
         } catch (err: any) {
             setStatus('failed');
-            setError(err.message);
+            setError(err.message || 'Unknown error');
+        } finally {
+            setIsLoading(false);
         }
     }, [engine, workflowId]);
 

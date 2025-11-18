@@ -1,8 +1,8 @@
-export interface ClientNode {
-    id: string;
+export interface ClientNode<TInput = any, TOutput = any> {
+    id?: string;
     type: string;
-    data: Record<string, any>;
-    execute(args: { input: any }): Promise<any>;
+    data?: Record<string, any>;
+    execute(args: { input: TInput }): Promise<TOutput>;
 }
 
 export class ClientEngine {
@@ -16,10 +16,10 @@ export class ClientEngine {
     }
 
     registerNode(node: ClientNode) {
-        this.nodes.set(node.id, node);
+        this.nodes.set(node.type, node);
     }
 
-    async execute({ workflowId, input = {}, onProgress }: { workflowId: string; input?: any; onProgress?: (stage: string, data?: any) => void }) {
+    async execute<TInput = any, TOutput = any>({ workflowId, input = {} as any, onProgress }: { workflowId: string; input?: TInput; onProgress?: (stage: string, data?: any) => void }): Promise<TOutput> {
         console.log('Starting client execution', workflowId, input);
         onProgress?.('start', { workflowId });
 

@@ -41,7 +41,9 @@ describe('useWorkflow', () => {
             // Simulate server resume
             onProgress('server-resume', {});
             await new Promise(resolve => setTimeout(resolve, 10));
-            onProgress('complete', { result: { success: true } });
+            const result = { success: true };
+            onProgress('complete', { result });
+            return result;
         });
 
         const wrapper = ({ children }: { children: React.ReactNode }) => (
