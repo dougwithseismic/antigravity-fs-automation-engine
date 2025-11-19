@@ -7,10 +7,21 @@ async function seed() {
     console.log("🌱 Seeding database...");
 
     try {
-        // Seed Workflows
-        console.log("   - Seeding workflows...");
+        // Check if already seeded
+        const existingWorkflows = await db.select().from(workflows).limit(1);
 
-        await db.insert(workflows).values(ppcWorkflow).returning();
+        if (existingWorkflows.length > 0) {
+            console.log("⏭️  Database already seeded, skipping...");
+            return;
+        }
+
+        // Seed in transaction
+        await db.transaction(async (tx) => {
+            // Seed Workflows
+            console.log("   - Seeding workflows...");
+            await tx.insert(workflows).values(ppcWorkflow);
+            console.log("✅ Workflows seeded");
+        });
 
         console.log("✅ Database seeding complete.");
     } catch (error) {
