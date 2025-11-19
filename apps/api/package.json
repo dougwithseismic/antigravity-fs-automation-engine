@@ -7,12 +7,14 @@
         "test": "vitest"
     },
     "dependencies": {
+        "@antigravity/nodes": "workspace:*",
         "@hono/node-server": "^1.0.0",
         "@hono/zod-openapi": "^1.1.4",
         "@repo/database": "workspace:*",
         "@repo/types": "workspace:*",
         "@scalar/hono-api-reference": "^0.9.24",
         "dotenv": "^16.0.0",
+        "drizzle-orm": "^0.30.0",
         "hono": "^4.0.0",
         "hono-pino": "^0.10.3",
         "pino": "^10.1.0",

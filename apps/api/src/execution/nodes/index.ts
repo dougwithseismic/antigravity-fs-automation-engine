@@ -49,6 +49,14 @@ class DefaultNodeExecutor implements NodeExecutor {
 import { HumanApprovalNodeExecutor } from './human';
 
 import { ConditionNodeExecutor, AnalyticsNodeExecutor, DiscountNodeExecutor } from './ppc';
+import {
+    FetchNode,
+    CodeNode,
+    SwitchNode,
+    WaitNode,
+    ExtractQueryParamsNode,
+    FilterNode
+} from '@antigravity/nodes';
 
 export const nodeRegistry: Record<string, new () => NodeExecutor> = {
     'start': StartNodeExecutor,
@@ -58,6 +66,12 @@ export const nodeRegistry: Record<string, new () => NodeExecutor> = {
     'condition': ConditionNodeExecutor,
     'analytics': AnalyticsNodeExecutor,
     'discount': DiscountNodeExecutor,
+    'fetch': FetchNode,
+    'code': CodeNode,
+    'switch': SwitchNode,
+    'wait': WaitNode,
+    'extract-query-params': ExtractQueryParamsNode,
+    'filter': FilterNode,
 };
 
 export function getNodeExecutor(node: WorkflowNode): NodeExecutor {

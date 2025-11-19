@@ -1,0 +1,98 @@
+# Building Custom Nodes
+
+Antigravity allows you to extend its functionality by creating custom nodes. Nodes are the building blocks of workflows, performing actions like fetching data, processing information, or interacting with external APIs.
+
+## Node Structure
+
+All standard nodes are located in `packages/nodes`. Each node is a class that implements the `AntigravityNode` interface.
+
+### The `AntigravityNode` Interface
+
+```typescript
+import { NodeExecutor, NodeExecutionArgs, NodeExecutionResult } from '@repo/types';
+
+export interface AntigravityNode extends NodeExecutor {
+    name: string;          // Unique identifier for the node (e.g., 'fetch')
+    displayName: string;   // Human-readable name (e.g., 'HTTP Request')
+    description: string;   // Brief description of what the node does
+    version: number;       // Version number for future migrations
+    defaults?: Record<string, any>; // Default input values
+    
+    // The main execution logic
+    execute(args: NodeExecutionArgs): Promise<NodeExecutionResult>;
+}
+```
+
+## Creating a New Node
+
+1.  **Create the Node File**: Create a new file in `packages/nodes/src` (e.g., `MyNode.ts`).
+2.  **Implement the Class**: Export a class that implements `AntigravityNode`.
+3.  **Register the Node**: Add your node to `apps/api/src/execution/nodes/index.ts`.
+
+### Example: A Simple Logger Node
+
+```typescript
+import { NodeExecutionArgs, NodeExecutionResult } from '@repo/types';
+import { AntigravityNode } from './types';
+
+export class LoggerNode implements AntigravityNode {
+    name = 'logger';
+    displayName = 'Logger';
+    description = 'Logs input to the console';
+    version = 1;
+
+    async execute({ node, input }: NodeExecutionArgs): Promise<NodeExecutionResult> {
+        console.log('Logger Node:', input);
+        return {
+            status: 'success',
+            output: { logged: true, originalInput: input }
+        };
+    }
+}
+```
+
+## Scaffolding
+
+To quickly generate a new node, you can use the scaffolding script:
+
+```bash
+pnpm run scaffold-node
+```
+
+This will prompt you for the node name and category, then generate the necessary files with a basic implementation.
+
+## Validation with Zod
+
+We recommend using [Zod](https://zod.dev/) for input and output validation. Colocate your Zod schemas in a `types.ts` file alongside your node implementation.
+
+```typescript
+// types.ts
+import { z } from 'zod';
+
+export const MyNodeInputSchema = z.object({
+    url: z.string().url(),
+});
+```
+
+## Testing
+
+We provide test utilities in `packages/nodes/src/test-utils.ts` to help you write unit tests for your nodes.
+
+```typescript
+import { describe, it, expect } from 'vitest';
+import { MyNode } from './MyNode';
+import { createMockExecutionArgs } from '../../../test-utils';
+
+describe('MyNode', () => {
+    it('should execute successfully', async () => {
+        const node = new MyNode();
+        const args = createMockExecutionArgs(
+            { type: 'my-node' },
+            { url: 'https://example.com' }
+        );
+        const result = await node.execute(args);
+
+        expect(result.status).toBe('success');
+    });
+});
+```

@@ -2,6 +2,8 @@
     "index": "Introduction",
     "examples": "Examples",
     "engine": "Antigravity Engine",
+    "nodes": "Standard Nodes",
+    "building-nodes": "Building Nodes",
     "database": "Database & Seeding",
     "client-sdk": "Client SDK",
     "react-sdk": "React SDK",

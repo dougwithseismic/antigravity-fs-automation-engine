@@ -1,0 +1,53 @@
+# Standard Nodes
+
+Antigravity comes with a set of standard nodes to help you build powerful workflows out of the box.
+
+## Core
+
+### Fetch Node
+- **Type**: `fetch`
+- **Description**: Makes an HTTP request to a specified URL.
+- **Inputs**: `url`, `method`, `headers`, `body`.
+- **Outputs**: `status`, `data`, `headers`.
+
+### Code Node
+- **Type**: `code`
+- **Description**: Executes custom JavaScript/TypeScript code.
+- **Inputs**: `code` (string), `input` (any).
+- **Outputs**: The return value of the code execution.
+
+## Flow Control
+
+### Switch Node
+- **Type**: `switch`
+- **Description**: Routes execution based on a condition.
+- **Inputs**: `condition` (string), `cases` (object).
+- **Outputs**: None (routes execution).
+
+### Wait Node
+- **Type**: `wait`
+- **Description**: Pauses execution for a specified duration.
+- **Inputs**: `amount` (number), `unit` ('seconds' | 'minutes' | 'hours').
+- **Outputs**: `resumeAfter` metadata.
+
+## Data Transformation
+
+### Extract Query Params Node
+- **Type**: `extract-query-params`
+- **Description**: Parses query parameters from a URL string.
+- **Inputs**: `url` (string).
+- **Outputs**: Object containing key-value pairs of query parameters.
+
+## Logic
+
+### Filter Node
+- **Type**: `filter`
+- **Description**: Filters input data based on a condition.
+- **Inputs**: 
+    - `field`: The field to check in the input data.
+    - `operator`: 'equals', 'contains', or 'exists'.
+    - `value`: The value to compare against.
+    - `data`: (Optional) The data object to check.
+- **Outputs**: 
+    - `match`: Boolean indicating if the condition was met.
+    - `data`: The original data if matched, or null.
