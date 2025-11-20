@@ -4,12 +4,6 @@ import { db } from '@repo/database';
 import { executionSteps, executions, workflows } from '@repo/database/schema';
 import { eq, and } from 'drizzle-orm';
 import { createLogger, withExecutionContext, Logger } from '@repo/logger';
-import {
-    nodeExecutionsTotal,
-    nodeExecutionDuration,
-    executionErrorsTotal,
-    activeExecutions,
-} from '@repo/metrics';
 
 // Import execution state service and node registry
 import { executionStateService } from '../services/execution-state';
@@ -75,7 +69,7 @@ const executeNodeLogic = async (nodeType: string, input: any, nodeData?: any, jo
     }
 };
 
-import { NODE_EXECUTION_QUEUE, getScheduledQueue, getNodeQueue } from '../config/queues';
+import { NODE_EXECUTION_QUEUE, getScheduledQueue } from '../config/queues';
 
 // ... (imports)
 
@@ -150,11 +144,6 @@ export class NodeWorker {
 
             // 4. Create step record (started)
             const stepStartTime = new Date().toISOString();
-            const stepStartMs = Date.now();
-            
-            // Increment active executions gauge
-            activeExecutions.inc();
-            
             await executionStateService.updateState(executionId, {
                 addStep: {
                     nodeId,
@@ -203,12 +192,6 @@ export class NodeWorker {
             const stepEndTime = new Date().toISOString();
             const stepStatus = result.status === 'failed' ? 'failed' :
                               result.status === 'suspended' ? 'suspended' : 'completed';
-            
-            // Record metrics
-            const durationSeconds = (Date.now() - stepStartMs) / 1000;
-            nodeExecutionDuration.observe({ nodeType: nodeDef.type }, durationSeconds);
-            nodeExecutionsTotal.inc({ nodeType: nodeDef.type, status: stepStatus });
-            activeExecutions.dec();
 
             await executionStateService.updateState(executionId, {
                 removeActiveNode: nodeId,
@@ -295,19 +278,6 @@ export class NodeWorker {
             // Check if this is the final attempt
             if (attempt >= maxAttempts) {
                 jobLogger.error({ errorDetails }, 'Max retries reached - marking execution as failed');
-                
-                // Record error metrics
-                const state = await executionStateService.getState(executionId);
-                const workflow = await db.query.workflows.findFirst({
-                    where: eq(workflows.id, workflowId),
-                });
-                const nodes = workflow?.nodes as any[] || [];
-                const nodeDef = nodes.find((n: any) => n.id === nodeId);
-                const nodeType = nodeDef?.type || 'unknown';
-                
-                executionErrorsTotal.inc({ errorType: 'max_retries', nodeType });
-                nodeExecutionsTotal.inc({ nodeType, status: 'failed' });
-                activeExecutions.dec();
 
                 // Mark as permanently failed
                 const failedStepEndTime = new Date().toISOString();
@@ -422,8 +392,8 @@ export class NodeWorker {
             logger.debug({ conditionResult, edgeCount: childEdges.length, parentNodeId }, 'Filtered edges based on condition result');
         }
 
-        // Use singleton queue instance instead of creating new one
-        const nodeQueue = getNodeQueue();
+        const { Queue } = await import('bullmq');
+        const nodeQueue = new Queue(QUEUE_NAME, { connection: redisConnection });
 
         // Get state to build merged input from all previous steps
         const state = await executionStateService.getState(executionId);
@@ -435,29 +405,6 @@ export class NodeWorker {
         }, {});
 
         for (const edge of childEdges) {
-            // Get target node to check for custom retry config
-            const targetNode = nodes.find((n: any) => n.id === edge.target);
-            const nodeType = targetNode?.type;
-
-            // Get retry config from node executor if available
-            let retryConfig: { attempts: number; backoff: { type: 'fixed' | 'exponential'; delay: number } } = {
-                attempts: 3,
-                backoff: { type: 'exponential', delay: 1000 }
-            };
-            if (nodeType) {
-                const nodeExecutor = nodeRegistry.get(nodeType);
-                if (nodeExecutor?.retry) {
-                    const backoff = nodeExecutor.retry.backoff || { type: 'exponential', delay: 1000 };
-                    retryConfig = {
-                        attempts: nodeExecutor.retry.attempts || 3,
-                        backoff: {
-                            type: backoff.type || 'exponential',
-                            delay: backoff.delay || 1000,
-                        },
-                    };
-                }
-            }
-
             await nodeQueue.add('execute-node', {
                 executionId,
                 nodeId: edge.target,
@@ -466,19 +413,11 @@ export class NodeWorker {
                 attempt: 1,
             }, {
                 jobId: `exec-${executionId}-node-${edge.target}`,
-                attempts: retryConfig.attempts,
-                backoff: retryConfig.backoff,
             });
-            logger.debug({
-                targetNodeId: edge.target,
-                executionId,
-                workflowId,
-                nodeType,
-                retryConfig
-            }, 'Enqueued child node with retry config');
+            logger.debug({ targetNodeId: edge.target, executionId, workflowId }, 'Enqueued child node');
         }
 
-        // Don't close singleton queue instance
+        await nodeQueue.close();
     }
 
     /**
@@ -540,9 +479,5 @@ export class NodeWorker {
         });
 
         logger.info({ executionId, nodeId, delayMs, nextNodeCount: childEdges.length }, 'Scheduled resume job');
-    }
-
-    async close(): Promise<void> {
-        await this.worker.close();
     }
 }

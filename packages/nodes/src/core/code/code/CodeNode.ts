@@ -6,6 +6,13 @@ export class CodeNode implements AntigravityNode {
     displayName = 'Code';
     description = 'Description for code';
     version = 1;
+    retry = {
+        attempts: 1, // Code errors are likely permanent - don't retry
+        backoff: {
+            type: 'fixed' as const,
+            delay: 0,
+        },
+    };
     defaults = {};
 
     async execute({ input, node }: NodeExecutionArgs): Promise<NodeExecutionResult> {
