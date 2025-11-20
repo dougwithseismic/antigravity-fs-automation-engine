@@ -42,14 +42,14 @@ function WorkflowWithSDK({ workflowId }: { workflowId: string }) {
 
                     {currentStep.type === 'banner-form' && (
                         <BannerFormUI
-                            message={currentStep.input?._clientMessage}
+                            message={(currentStep as any).input?._clientMessage}
                             onSubmit={(formData) => submit(formData)}
                         />
                     )}
 
                     {currentStep.type === 'window-alert' && (
                         <AlertUI
-                            message={currentStep.input?._clientMessage}
+                            message={(currentStep as any).input?._clientMessage}
                             onAcknowledge={() => submit({ acknowledged: true })}
                         />
                     )}

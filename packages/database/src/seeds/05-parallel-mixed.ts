@@ -1,9 +1,11 @@
+import { buildWorkflow } from './helpers';
+
 /**
  * Scenario 5: Parallel Mixed (Server + Client)
  * One branch runs on server, one suspends for client
  * Tests complex orchestration with mixed execution environments
  */
-export const parallelMixedWorkflow = {
+export const parallelMixedWorkflow = buildWorkflow({
     name: 'Interactive Survey',
     description: 'Parallel execution with server-side analytics and client-side user interaction',
     nodes: [
@@ -25,12 +27,16 @@ export const parallelMixedWorkflow = {
         // Branch A - Server only
         {
             id: '3',
-            type: 'discount',
+            type: 'shopify',
             position: { x: 100, y: 300 },
             data: {
                 label: 'Server: Generate Code',
-                prefix: 'AUTO',
-                percentage: 10
+                resource: 'discount',
+                operation: 'create',
+                payload: `{
+  "code": "AUTO",
+  "percentage": 10
+}`
             }
         },
         {
@@ -81,10 +87,10 @@ export const parallelMixedWorkflow = {
         { id: 'e2-3', source: '2', target: '3' },
         { id: 'e2-5', source: '2', target: '5' },
         // Continue branches
-        { id: 'e3-4', source: '3', target: '4' },
+        { id: 'e3-4', source: '3', target: '4', sourceHandle: 'data', targetHandle: 'variables' },
         { id: 'e5-6', source: '5', target: '6' },
         // Converge back to single node
-        { id: 'e4-7', source: '4', target: '7' },
+        { id: 'e4-7', source: '4', target: '7', sourceHandle: 'recipient', targetHandle: 'properties' },
         { id: 'e6-7', source: '6', target: '7' }
     ]
-};
+});

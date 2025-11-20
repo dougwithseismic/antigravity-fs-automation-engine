@@ -5,6 +5,7 @@
         "./schema": "./src/schema.ts"
     },
     "dependencies": {
+        "@antigravity/nodes": "workspace:*",
         "dotenv": "^16.0.0",
         "drizzle-orm": "^0.30.0",
         "pg": "^8.16.3",

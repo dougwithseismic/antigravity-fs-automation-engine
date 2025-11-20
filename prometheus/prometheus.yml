@@ -1,0 +1,18 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+  scrape_timeout: 4s
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Scrapes the worker metrics server running on the host (started via pnpm --filter @antigravity/worker dev).
+  - job_name: antigravity-worker
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - host.docker.internal:9464
+        labels:
+          service: worker

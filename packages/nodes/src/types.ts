@@ -35,6 +35,14 @@ export interface NodeOutputDefinition {
     type: string; // e.g., 'string', 'credentials.env', 'json'
 }
 
+export interface NodeHandle {
+    id: string;
+    type: 'target' | 'source';
+    dataType: 'flow' | 'string' | 'number' | 'boolean' | 'json' | 'tool' | 'model' | 'credential';
+    label?: string;
+    acceptsMultiple?: boolean; // For arrays like 'tools'
+}
+
 export interface AntigravityNode extends NodeExecutor {
     name: string;
     displayName: string;
@@ -43,6 +51,11 @@ export interface AntigravityNode extends NodeExecutor {
     environment?: ExecutionEnvironment; // Where this node executes
     retry?: NodeRetryConfig; // Retry configuration for this node type
     defaults?: Record<string, any>;
+    
+    // New Architecture
+    handles?: NodeHandle[];
+
+    // Legacy (to be deprecated)
     inputs?: string[];
     outputs?: string[];
     ui?: {

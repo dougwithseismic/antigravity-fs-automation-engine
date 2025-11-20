@@ -24,6 +24,21 @@ services:
     networks:
       - supabase_network
 
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    container_name: antigravity-prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - supabase_network
+
 networks:
   supabase_network:
     external: true
@@ -31,3 +46,4 @@ networks:
 
 volumes:
   redis_data:
+  prometheus_data:

@@ -13,6 +13,7 @@ import { conditionalMixedWorkflow } from "./seeds/07-conditional-mixed";
 import { hybridSegmentationWorkflow } from "./seeds/08-hybrid-segmentation";
 import { bannerABTestWorkflow } from "./seeds/09-banner-ab-test";
 import { delayedNotificationWorkflow } from "./seeds/10-delayed-notification";
+import { agentWorkflow } from "./seeds/11-agent-workflow";
 
 async function seed() {
     console.log("🌱 Seeding database with comprehensive workflow examples...");
@@ -38,7 +39,8 @@ async function seed() {
                 conditionalMixedWorkflow,
                 hybridSegmentationWorkflow,
                 bannerABTestWorkflow,
-                delayedNotificationWorkflow
+                delayedNotificationWorkflow,
+                agentWorkflow
             ];
 
             console.log("\n📋 Seeding workflows:");

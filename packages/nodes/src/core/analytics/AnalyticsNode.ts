@@ -10,9 +10,59 @@ export class AnalyticsNode implements AntigravityNode {
     displayName = 'Analytics';
     description = 'Log analytics events';
     version = 1;
+    inputs = ['eventName', 'properties'];
+    outputs = ['success', 'eventName', 'timestamp'];
     category = 'Integration' as const;
     tags = ['tracking', 'events', 'analytics'];
     defaults = {};
+
+    handles = [
+        // Control Flow
+        {
+            id: 'flow-in',
+            type: 'target' as const,
+            dataType: 'flow' as const,
+            label: 'In'
+        },
+        {
+            id: 'flow-out',
+            type: 'source' as const,
+            dataType: 'flow' as const,
+            label: 'Out'
+        },
+        // Data Inputs
+        {
+            id: 'eventName',
+            type: 'target' as const,
+            dataType: 'string' as const,
+            label: 'Event Name'
+        },
+        {
+            id: 'properties',
+            type: 'target' as const,
+            dataType: 'json' as const,
+            label: 'Properties'
+        },
+        // Data Outputs
+        {
+            id: 'success',
+            type: 'source' as const,
+            dataType: 'boolean' as const,
+            label: 'Success'
+        },
+        {
+            id: 'eventName',
+            type: 'source' as const,
+            dataType: 'string' as const,
+            label: 'Event Name'
+        },
+        {
+            id: 'timestamp',
+            type: 'source' as const,
+            dataType: 'string' as const,
+            label: 'Timestamp'
+        }
+    ];
 
     ui = {
         icon: 'analytics',

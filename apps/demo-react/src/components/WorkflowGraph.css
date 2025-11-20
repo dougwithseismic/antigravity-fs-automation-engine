@@ -1,134 +1,11 @@
 .workflow-graph-container {
     width: 100%;
     height: 100%;
-    background: #0a0a0a;
+    background: linear-gradient(135deg, rgba(77, 93, 255, 0.08), transparent 60%),
+        #0c1220;
+    border-radius: 12px;
 }
 
-.custom-node {
-    background: #1a1a1a;
-    border: 2px solid #646cff;
-    border-radius: 8px;
-    padding: 0.75rem;
-    min-width: 120px;
-    position: relative;
-    transition: all 0.3s;
-}
-
-.custom-node:hover {
-    border-color: #535bf2;
-    box-shadow: 0 0 20px rgba(100, 108, 255, 0.5);
-    transform: scale(1.05);
-}
-
-.custom-node:hover .node-tooltip {
-    opacity: 1;
-    visibility: visible;
-}
-
-/* Pending nodes - greyed out */
-.pending-node .custom-node {
-    border-color: #444;
-    background: #0f0f0f;
-    opacity: 0.4;
-}
-
-/* Executed nodes - normal state */
-.executed-node .custom-node {
-    border-color: #646cff;
-    background: #1a1a1a;
-}
-
-/* Active node - green with flash */
-.active-node .custom-node {
-    border-color: #4caf50;
-    background: #1f2f1f;
-    box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
-    animation: flash 0.5s ease-in-out;
-}
-
-/* Hovered node - blue highlight */
-.hovered-node .custom-node {
-    border-color: #535bf2;
-    background: #1a1a2e;
-    box-shadow: 0 0 20px rgba(83, 91, 242, 0.5);
-}
-
-@keyframes flash {
-
-    0%,
-    100% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0.6;
-        transform: scale(1.05);
-    }
-}
-
-.node-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem;
-}
-
-.environment-badge {
-    font-size: 0.65rem;
-    font-weight: 600;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    display: inline-block;
-}
-
-.environment-badge.client-env {
-    background: rgba(76, 175, 80, 0.2);
-    color: #4caf50;
-    border: 1px solid #4caf50;
-}
-
-.environment-badge.server-env {
-    background: rgba(100, 108, 255, 0.2);
-    color: #646cff;
-    border: 1px solid #646cff;
-}
-
-.node-label {
-    font-size: 0.8rem;
-    color: #fff;
-    font-weight: 500;
-    text-align: center;
-}
-
-.node-tooltip {
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    margin-top: 0.5rem;
-    background: #222;
-    padding: 0.75rem;
-    border-radius: 6px;
-    border: 1px solid #444;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s, visibility 0.2s;
-    white-space: pre-line;
-    z-index: 9999;
-    min-width: 200px;
-    pointer-events: none;
-}
-
-.tooltip-content {
-    font-size: 0.75rem;
-    color: #aaa;
-    line-height: 1.5;
-}
-
-/* React Flow overrides */
 .react-flow__node {
     cursor: pointer;
     z-index: 10;
@@ -139,63 +16,41 @@
 }
 
 .react-flow__edge-path {
-    stroke-width: 4;
+    stroke-width: 2.5;
     stroke-linecap: round;
 }
 
 .react-flow__connectionline {
-    stroke-width: 3;
+    stroke-width: 2;
+    stroke: #1f2738;
 }
 
-/* Connection handles */
-.react-flow__handle {
-    width: 10px;
-    height: 10px;
-    background: #646cff;
-    border: 2px solid #0a0a0a;
-}
-
-.react-flow__handle-top {
-    top: -5px;
-}
-
-.react-flow__handle-bottom {
-    bottom: -5px;
-}
-
-.active-node .react-flow__handle {
-    background: #4caf50;
-}
-
-.pending-node .react-flow__handle {
-    background: #444;
-    opacity: 0.5;
+.pending-node .react-flow__edge-path {
+    stroke-dasharray: 6 4;
 }
 
 .react-flow__controls {
-    background: #1a1a1a;
-    border: 1px solid #333;
+    background: #0f1626;
+    border: 1px solid #1d2233;
+    box-shadow: 0 14px 30px -22px rgba(0, 0, 0, 0.55);
+    border-radius: 12px;
+    overflow: hidden;
 }
 
 .react-flow__controls-button {
-    background: #222;
-    border-bottom: 1px solid #333;
-    color: #fff;
+    background: transparent;
+    border-bottom: 1px solid #1f2738;
+    color: #e2e8f0;
 }
 
 .react-flow__controls-button:hover {
-    background: #333;
+    background: #12192b;
 }
 
-.react-flow__minimap {
-    background: #0a0a0a;
-    border: 1px solid #333;
+.react-flow__controls-button:last-child {
+    border-bottom: none;
 }
 
 .react-flow__background {
-    background: #0a0a0a;
-}
-
-.react-flow__edge-path {
-    stroke-width: 2;
+    background: transparent;
 }

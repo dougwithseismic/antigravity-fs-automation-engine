@@ -12,10 +12,48 @@ export class GoogleSearchNode implements AntigravityNode {
     displayName = 'Google Search Mockup';
     description = 'Display Google search results mockup with different traffic sources';
     version = 1;
+    inputs = ['searchQuery'];
+    outputs = ['source', 'utmParams'];
     category = 'UI' as const;
     tags = ['search', 'client', 'interactive', 'utm', 'ab-test'];
     environment = 'client' as const;
     defaults = {};
+
+    handles = [
+        // Control Flow
+        {
+            id: 'flow-in',
+            type: 'target' as const,
+            dataType: 'flow' as const,
+            label: 'In'
+        },
+        {
+            id: 'flow-out',
+            type: 'source' as const,
+            dataType: 'flow' as const,
+            label: 'Out'
+        },
+        // Data Inputs
+        {
+            id: 'searchQuery',
+            type: 'target' as const,
+            dataType: 'string' as const,
+            label: 'Search Query'
+        },
+        // Data Outputs
+        {
+            id: 'source',
+            type: 'source' as const,
+            dataType: 'string' as const,
+            label: 'Traffic Source'
+        },
+        {
+            id: 'utmParams',
+            type: 'source' as const,
+            dataType: 'json' as const,
+            label: 'UTM Parameters'
+        }
+    ];
 
     ui = {
         icon: 'search',

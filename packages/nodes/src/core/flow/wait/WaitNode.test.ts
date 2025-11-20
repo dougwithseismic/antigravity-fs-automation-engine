@@ -25,7 +25,8 @@ describe('WaitNode', () => {
 
         expect(result.status).toBe('suspended');
         expect(result.output).toEqual({
-            resumeAfter: { amount: 5, unit: 'seconds' }
+            resumeAfter: { amount: 5, unit: 'seconds' },
+            resumePayload: null
         });
     });
 });

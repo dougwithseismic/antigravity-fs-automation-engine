@@ -10,9 +10,71 @@ export class ConditionNode implements AntigravityNode {
     displayName = 'Condition';
     description = 'Evaluates a condition and routes workflow based on result';
     version = 1;
+    inputs = ['key', 'operator', 'value'];
+    outputs = ['result', 'inputValue', 'operator', 'key'];
     category = 'Logic' as const;
     tags = ['condition', 'routing', 'branching'];
     defaults = {};
+
+    handles = [
+        // Control Flow
+        {
+            id: 'flow-in',
+            type: 'target' as const,
+            dataType: 'flow' as const,
+            label: 'In'
+        },
+        {
+            id: 'flow-out',
+            type: 'source' as const,
+            dataType: 'flow' as const,
+            label: 'Out'
+        },
+        // Data Inputs
+        {
+            id: 'key',
+            type: 'target' as const,
+            dataType: 'string' as const,
+            label: 'Key Path'
+        },
+        {
+            id: 'operator',
+            type: 'target' as const,
+            dataType: 'string' as const,
+            label: 'Operator'
+        },
+        {
+            id: 'value',
+            type: 'target' as const,
+            dataType: 'string' as const,
+            label: 'Value'
+        },
+        // Data Outputs
+        {
+            id: 'result',
+            type: 'source' as const,
+            dataType: 'boolean' as const,
+            label: 'Result'
+        },
+        {
+            id: 'inputValue',
+            type: 'source' as const,
+            dataType: 'string' as const,
+            label: 'Input Value'
+        },
+        {
+            id: 'operator',
+            type: 'source' as const,
+            dataType: 'string' as const,
+            label: 'Operator'
+        },
+        {
+            id: 'key',
+            type: 'source' as const,
+            dataType: 'string' as const,
+            label: 'Key'
+        }
+    ];
 
     ui = {
         icon: 'condition',

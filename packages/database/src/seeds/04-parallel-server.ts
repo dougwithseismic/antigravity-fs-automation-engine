@@ -1,9 +1,11 @@
+import { buildWorkflow } from './helpers';
+
 /**
  * Scenario 4: Parallel Server Branches
  * Server splits into parallel branches, both execute simultaneously
  * Workflow completes when both branches finish
  */
-export const parallelServerWorkflow = {
+export const parallelServerWorkflow = buildWorkflow({
     name: 'Multi-Channel Notification',
     description: 'Parallel server branches for simultaneous email, analytics, and tracking',
     nodes: [
@@ -44,12 +46,16 @@ export const parallelServerWorkflow = {
         // Branch B - Email path
         {
             id: '5',
-            type: 'discount',
+            type: 'shopify',
             position: { x: 400, y: 300 },
             data: {
                 label: 'Generate Code',
-                prefix: 'PARALLEL',
-                percentage: 15
+                resource: 'discount',
+                operation: 'create',
+                payload: `{
+  "code": "PARALLEL",
+  "percentage": 15
+}`
             }
         },
         {
@@ -80,9 +86,9 @@ export const parallelServerWorkflow = {
         { id: 'e2-5', source: '2', target: '5' },
         // Continue branches
         { id: 'e3-4', source: '3', target: '4' },
-        { id: 'e5-6', source: '5', target: '6' },
+        { id: 'e5-6', source: '5', target: '6', sourceHandle: 'data', targetHandle: 'variables' },
         // Converge back to single node
         { id: 'e4-7', source: '4', target: '7' },
-        { id: 'e6-7', source: '6', target: '7' }
+        { id: 'e6-7', source: '6', target: '7', sourceHandle: 'recipient', targetHandle: 'properties' }
     ]
-};
+});

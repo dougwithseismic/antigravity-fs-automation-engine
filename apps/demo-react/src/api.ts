@@ -22,6 +22,8 @@ export interface ExecutionStatus {
     finishedAt?: string;
     steps: ExecutionStep[];
     variables: Record<string, any>;
+    completedNodes?: string[];
+    stepResults?: Record<string, any>;
     currentState?: {
         executionId: number;
         workflowId: number;
@@ -32,6 +34,7 @@ export interface ExecutionStatus {
         variables: Record<string, any>;
         startedAt: string;
         updatedAt: string;
+        stepResults?: Record<string, any>;
     };
 }
 
@@ -82,6 +85,13 @@ export async function resumeExecution(executionId: number, data: any): Promise<{
     if (!response.ok) {
         const error = await response.json();
         throw new Error(error.error || 'Failed to resume execution');
+    }
+    return response.json();
+}
+export async function fetchNodes(): Promise<any[]> {
+    const response = await fetch(`${API_BASE_URL}/nodes`);
+    if (!response.ok) {
+        throw new Error('Failed to fetch nodes');
     }
     return response.json();
 }

@@ -28,9 +28,10 @@ describe('SwitchNode', () => {
 
         expect(result.status).toBe('success');
         expect(result.output).toEqual({
-            foo: 'bar',
-            rules: [{ condition: 'true' }],
-            _routeIndex: 0
+            routeIndex: 0,
+            route: 0,
+            matchedRule: { condition: 'true' },
+            value: undefined
         });
     });
 });

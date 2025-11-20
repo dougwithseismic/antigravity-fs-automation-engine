@@ -7,6 +7,7 @@ import { config } from "./config";
 import workflows from "./routes/workflows";
 import executions from "./routes/executions";
 import webhooks from "./routes/webhooks";
+import nodes from "./routes/nodes";
 import { authMiddleware } from "./middleware/auth";
 
 export const app = new OpenAPIHono({
@@ -50,6 +51,7 @@ app.get("/", (c) => {
 // Apply auth middleware to sensitive routes
 app.use("/workflows/*", authMiddleware);
 app.use("/executions/*", authMiddleware);
+app.use("/nodes/*", authMiddleware);
 
 // IMPORTANT: For OpenAPI to work properly with sub-routes,
 // we need to mount them before calling app.doc()
@@ -57,6 +59,7 @@ app.use("/executions/*", authMiddleware);
 app.route("/workflows", workflows);
 app.route("/executions", executions);
 app.route("/webhooks", webhooks);
+app.route("/nodes", nodes);
 
 // Generate OpenAPI documentation
 app.doc("/doc", {

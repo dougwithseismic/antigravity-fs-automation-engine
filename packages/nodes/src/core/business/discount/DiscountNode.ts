@@ -10,12 +10,62 @@ export class DiscountNode implements AntigravityNode {
     displayName = 'Discount Code Generator';
     description = 'Generates unique discount codes';
     version = 1;
+    inputs = ['percentage', 'prefix'];
+    outputs = ['code', 'percentage', 'expiresAt'];
     category = 'Business' as const;
     tags = ['promotion', 'discount', 'coupon'];
     defaults = {
         percentage: 10,
         prefix: 'WELCOME'
     };
+
+    handles = [
+        // Control Flow
+        {
+            id: 'flow-in',
+            type: 'target' as const,
+            dataType: 'flow' as const,
+            label: 'In'
+        },
+        {
+            id: 'flow-out',
+            type: 'source' as const,
+            dataType: 'flow' as const,
+            label: 'Out'
+        },
+        // Data Inputs
+        {
+            id: 'percentage',
+            type: 'target' as const,
+            dataType: 'number' as const,
+            label: 'Discount %'
+        },
+        {
+            id: 'prefix',
+            type: 'target' as const,
+            dataType: 'string' as const,
+            label: 'Code Prefix'
+        },
+        // Data Outputs
+        {
+            id: 'code',
+            type: 'source' as const,
+            dataType: 'string' as const,
+            label: 'Discount Code'
+        },
+        {
+            id: 'percentage',
+            type: 'source' as const,
+            dataType: 'number' as const,
+            label: 'Percentage'
+        },
+        {
+            id: 'expiresAt',
+            type: 'source' as const,
+            dataType: 'string' as const,
+            label: 'Expires At'
+        }
+    ];
 
     ui = {
         icon: 'discount',

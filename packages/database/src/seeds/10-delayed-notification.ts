@@ -1,9 +1,11 @@
+import { buildWorkflow } from './helpers';
+
 /**
  * Scenario 10: Delayed Notification
  * Shows banner → Wait 10 seconds → Show follow-up message
  * Demonstrates time-based workflow orchestration
  */
-export const delayedNotificationWorkflow = {
+export const delayedNotificationWorkflow = buildWorkflow({
     name: 'Delayed Notification',
     description: 'Collect email → Wait 10 seconds → Show follow-up message',
     nodes: [
@@ -48,7 +50,7 @@ export const delayedNotificationWorkflow = {
             position: { x: 300, y: 500 },
             data: {
                 label: 'Wait 10 Seconds',
-                duration: 10,
+                amount: 10,
                 unit: 'seconds'
             }
         },
@@ -84,11 +86,11 @@ export const delayedNotificationWorkflow = {
     ],
     edges: [
         { id: 'e1-2', source: '1', target: '2' },
-        { id: 'e2-3', source: '2', target: '3' },
+        { id: 'e2-3', source: '2', target: '3', sourceHandle: 'email', targetHandle: 'properties' },
         { id: 'e3-4', source: '3', target: '4' },
         { id: 'e4-5', source: '4', target: '5' },
-        { id: 'e5-6', source: '5', target: '6' },
-        { id: 'e6-7', source: '6', target: '7' },
+        { id: 'e5-6', source: '5', target: '6', sourceHandle: 'resumeAfter', targetHandle: 'properties' },
+        { id: 'e6-7', source: '6', target: '7', sourceHandle: 'code', targetHandle: 'message' },
         { id: 'e7-8', source: '7', target: '8' }
     ]
-};
+});

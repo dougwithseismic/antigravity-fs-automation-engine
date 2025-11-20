@@ -9,6 +9,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
     "test": "turbo run test",
+    "storybook": "pnpm --filter @repo/ui storybook",
     "db:reset": "pnpm --filter @repo/database db:reset",
     "db:seed": "pnpm --filter @repo/database db:seed",
     "antigravity:start": "pnpm --filter @antigravity/vscode-interceptor start",

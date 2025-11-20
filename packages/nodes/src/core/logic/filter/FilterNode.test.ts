@@ -17,7 +17,8 @@ describe('FilterNode', () => {
 
         expect(result.status).toBe('success');
         expect(result.output?.match).toBe(true);
-        expect(result.output?.data).toEqual({ status: 'active', id: 1 });
+        expect(result.output?.fieldValue).toBe('active');
+        expect(result.output?.expectedValue).toBe('active');
     });
 
     it('should not match equals operator', async () => {
@@ -34,7 +35,7 @@ describe('FilterNode', () => {
 
         expect(result.status).toBe('success');
         expect(result.output?.match).toBe(false);
-        expect(result.output?.data).toBeNull();
+        expect(result.output?.fieldValue).toBe('inactive');
     });
 
     it('should match contains operator', async () => {

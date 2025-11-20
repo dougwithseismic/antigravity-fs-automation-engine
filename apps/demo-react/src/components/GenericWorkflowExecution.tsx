@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { fetchWorkflow, executeWorkflow, getExecutionStatus, resumeExecution, type Workflow, type ExecutionStatus, type ExecutionStep } from '../api';
+import { fetchWorkflow, executeWorkflow, getExecutionStatus, resumeExecution, fetchNodes, type Workflow, type ExecutionStatus, type ExecutionStep } from '../api';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { WorkflowGraph } from './WorkflowGraph';
 import { ClientNodeRenderer } from './ClientNodeRenderer';
 import { ServerOutputDisplay } from './ServerOutputDisplay';
 import { ExecutionTimeline } from './ExecutionTimeline';
-import { stepsToNodeResults, getStepsByStatus } from '../lib/utils';
+import { stepsToNodeResults } from '../lib/utils';
 import './WorkflowExecution.css';
 import './ClientNodes.css';
 
@@ -21,6 +21,9 @@ export function GenericWorkflowExecution({ workflowId, onBack }: GenericWorkflow
     const [logs, setLogs] = useState<string[]>([]);
     const [executionStatus, setExecutionStatus] = useState<ExecutionStatus | null>(null);
     const [currentExecutionId, setCurrentExecutionId] = useState<number | null>(null);
+    
+    // Node definitions from API
+    const [nodeDefinitions, setNodeDefinitions] = useState<any[]>([]);
 
     // Steps array (new architecture)
     const [steps, setSteps] = useState<ExecutionStep[]>([]);
@@ -34,7 +37,17 @@ export function GenericWorkflowExecution({ workflowId, onBack }: GenericWorkflow
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
-        fetchWorkflow(workflowId).then(setWorkflow).catch(console.error);
+        // Fetch workflow and node definitions in parallel
+        Promise.all([
+            fetchWorkflow(workflowId),
+            fetchNodes().catch(err => {
+                console.error("Failed to fetch node definitions:", err);
+                return [];
+            })
+        ]).then(([wf, nodes]) => {
+            setWorkflow(wf);
+            setNodeDefinitions(nodes);
+        }).catch(console.error);
     }, [workflowId]);
 
     const addLog = useCallback((msg: string) => {
@@ -191,8 +204,32 @@ export function GenericWorkflowExecution({ workflowId, onBack }: GenericWorkflow
 
     if (!workflow) return <div className="loading">Loading workflow details...</div>;
 
-    const nodes = workflow.nodes as any[];
+    // Merge node definitions into workflow nodes
+    const nodes = (workflow.nodes as any[]).map(node => {
+        const def = nodeDefinitions.find(d => d.name === node.type);
+        if (def) {
+            return {
+                ...node,
+                data: {
+                    ...node.data,
+                    handles: def.handles, // Inject handles from definition
+                    ui: def.ui // Inject UI config if needed
+                }
+            };
+        }
+        return node;
+    });
+
     const hasClientNodes = nodes.some(n => n.environment === 'client');
+    const statusClass = status.toLowerCase().includes('run')
+        ? 'running'
+        : status.toLowerCase().includes('complete')
+            ? 'completed'
+            : status.toLowerCase().includes('fail')
+                ? 'failed'
+                : status.toLowerCase().includes('idle')
+                    ? 'idle'
+                    : 'default';
 
     return (
         <div className="execution-container">
@@ -200,7 +237,7 @@ export function GenericWorkflowExecution({ workflowId, onBack }: GenericWorkflow
                 <button onClick={onBack}>← Back</button>
                 <h2>{workflow.name} <span className="id-badge">ID: {workflow.id}</span></h2>
                 <div className="controls">
-                    <span className={`status-badge ${status.toLowerCase()}`}>{status}</span>
+                    <span className={`status-badge ${statusClass}`}>{status}</span>
                     {currentExecutionId && (
                         <span className="execution-id">Exec: #{currentExecutionId}</span>
                     )}
@@ -259,7 +296,7 @@ export function GenericWorkflowExecution({ workflowId, onBack }: GenericWorkflow
                                                 </div>
                                             ) : activeClientNodes.length > 0 ? (
                                                 <div className="client-nodes-container">
-                                                    {activeClientNodes.map((node, idx) => {
+                                                    {activeClientNodes.map((node) => {
                                                         // Calculate step info
                                                         const allClientNodes = nodes.filter(n => n.environment === 'client');
                                                         const currentStep = allClientNodes.findIndex(n => n.id === node.id) + 1;

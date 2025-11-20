@@ -9,9 +9,9 @@
 }
 
 .client-node-widget {
-    background: white;
+    background: #0f1626;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 20px 60px -38px rgba(0, 0, 0, 0.6);
     overflow: hidden;
     animation: slideIn 0.3s ease-out;
 }
@@ -29,12 +29,12 @@
 
 .widget-header {
     padding: 1.5rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(120deg, #1f2f68 0%, #2f46c2 100%);
     color: white;
 }
 
 .widget-header.alert {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    background: linear-gradient(135deg, #ef4444 0%, #f59e0b 100%);
 }
 
 .widget-header-content {
@@ -56,7 +56,7 @@
 
 .widget-header h3 {
     margin: 0;
-    font-size: 1.2rem;
+    font-size: 1.05rem;
     font-weight: 600;
 }
 
@@ -68,8 +68,8 @@
 }
 
 .widget-message {
-    font-size: 1rem;
-    color: #555;
+    font-size: 0.95rem;
+    color: #cbd5e1;
     margin: 0 0 1rem 0;
     line-height: 1.5;
 }
@@ -83,26 +83,29 @@
     width: 100%;
     padding: 0.75rem;
     margin-bottom: 0.75rem;
-    border: 2px solid #e0e0e0;
+    border: 1px solid #1d2233;
     border-radius: 8px;
-    font-size: 1rem;
+    font-size: 0.95rem;
     transition: border-color 0.2s;
+    background: #0c1220;
+    color: #e2e8f0;
 }
 
 .input-field:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #4d5dff;
+    box-shadow: 0 0 0 4px rgba(77, 93, 255, 0.18);
 }
 
 /* Buttons */
 .submit-button {
     width: 100%;
     padding: 0.875rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(120deg, #1f2f68 0%, #2f46c2 100%);
     color: white;
     border: none;
     border-radius: 8px;
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
@@ -110,7 +113,7 @@
 
 .submit-button:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 6px 20px -10px rgba(59, 90, 241, 0.5);
 }
 
 .submit-button:disabled {
@@ -119,27 +122,27 @@
 }
 
 .submit-button.success {
-    background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+    background: linear-gradient(135deg, #0ea36e 0%, #22c55e 100%);
 }
 
 .submit-button.primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(120deg, #2339c4 0%, #3b5af1 100%);
 }
 
 /* Alert Widget */
 .alert-message {
     padding: 1.5rem;
-    background: #f8f9fa;
+    background: #0c1220;
     border-radius: 8px;
     margin-bottom: 1rem;
-    font-size: 1.05rem;
+    font-size: 0.95rem;
     text-align: center;
-    color: #333;
+    color: #e2e8f0;
 }
 
 /* Default Widget */
 .default-widget .node-data {
-    background: #f8f9fa;
+    background: #0c1220;
     padding: 1rem;
     border-radius: 8px;
     margin-bottom: 1rem;
@@ -147,8 +150,8 @@
 
 .default-widget pre {
     margin: 0;
-    font-size: 0.85rem;
-    color: #666;
+    font-size: 0.8rem;
+    color: #cbd5e1;
 }
 
 /* Processing State */
@@ -188,8 +191,8 @@
 
 .processing-state p {
     margin-top: 1rem;
-    color: #666;
-    font-size: 1.1rem;
+    color: #94a3b8;
+    font-size: 1rem;
     font-weight: 500;
 }
 
@@ -210,7 +213,7 @@
 }
 
 .idle-state p {
-    color: #999;
+    color: #9ca3af;
     font-size: 1rem;
 }
 
@@ -221,22 +224,23 @@
 }
 
 .output-section {
-    background: white;
+    background: #0c1220;
     border-radius: 8px;
     padding: 1rem;
     margin-bottom: 1rem;
+    border: 1px solid #1d2233;
 }
 
 .output-section h4 {
     margin: 0 0 0.75rem 0;
     font-size: 0.9rem;
-    color: #666;
+    color: #cbd5e1;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .discount-card {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    background: linear-gradient(135deg, #1f2f68 0%, #2f46c2 100%);
     color: white;
     padding: 1rem;
     border-radius: 8px;
@@ -254,15 +258,17 @@
 .discount-details {
     font-size: 0.85rem;
     opacity: 0.9;
+    color: #cbd5e1;
 }
 
 .analytics-event {
     display: flex;
     justify-content: space-between;
     padding: 0.75rem;
-    background: #f8f9fa;
+    background: #0f1626;
     border-radius: 6px;
     margin-bottom: 0.5rem;
+    border: 1px solid #1d2233;
 }
 
 .event-name {
@@ -270,7 +276,7 @@
 }
 
 .event-time {
-    color: #999;
+    color: #9ca3af;
     font-size: 0.85rem;
 }
 
@@ -279,13 +285,14 @@
     flex-direction: column;
     gap: 0.25rem;
     padding: 0.75rem;
-    background: #f8f9fa;
+    background: #0f1626;
     border-radius: 6px;
     margin-bottom: 0.5rem;
+    border: 1px solid #1d2233;
 }
 
 .email-template {
-    font-size: 0.85rem;
-    color: #999;
+    font-size: 0.8rem;
+    color: #9ca3af;
     font-family: monospace;
 }

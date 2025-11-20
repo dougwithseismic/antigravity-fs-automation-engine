@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -13,18 +15,16 @@ body,
   padding: 0;
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
+  color: #e2e8f0;
+  background-color: #0b0f1a;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -32,58 +32,53 @@ body,
 }
 
 a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
+  font-weight: 600;
+  color: #9eb2ff;
+  text-decoration: none;
 }
 
 a:hover {
-  color: #535bf2;
+  color: #c1ccff;
 }
 
 body {
-  /* margin: 0; */
   min-width: 320px;
   min-height: 100vh;
+  background: radial-gradient(circle at 15% 20%, rgba(77, 93, 255, 0.12), transparent 30%),
+    radial-gradient(circle at 90% 0%, rgba(23, 196, 146, 0.08), transparent 22%),
+    #0b0f1a;
 }
 
 h1 {
-  font-size: 3.2em;
+  font-size: 2.35em;
   line-height: 1.1;
 }
 
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
+  border-radius: 10px;
+  border: 1px solid #1b2030;
+  padding: 0.65em 1.1em;
+  font-size: 0.9em;
+  font-weight: 600;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: #11172a;
+  color: #e2e8f0;
+  box-shadow: 0 10px 35px -28px rgba(0, 0, 0, 0.6);
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.1s, background 0.2s;
 }
 
 button:hover {
-  border-color: #646cff;
+  border-color: #4d5dff;
+  box-shadow: 0 12px 36px -25px rgba(77, 93, 255, 0.35);
+}
+
+button:active {
+  transform: translateY(1px);
 }
 
 button:focus,
 button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-
-  a:hover {
-    color: #747bff;
-  }
-
-  button {
-    background-color: #f9f9f9;
-  }
+  outline: 3px solid rgba(77, 93, 255, 0.35);
+  outline-offset: 1px;
 }

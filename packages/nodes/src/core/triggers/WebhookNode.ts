@@ -4,7 +4,7 @@ import { NodeExecutionArgs, NodeExecutionResult } from '@repo/types';
 export class WebhookNode implements AntigravityNode {
     name = 'webhook';
     displayName = 'Webhook Trigger';
-    description = 'Starts a workflow when an external HTTP request is received.';
+    description = 'Starts a workflow when an HTTP request is received. Supports GET, POST, PUT, PATCH, DELETE, and OPTIONS.';
     version = 1;
     environment = 'server' as const;
     retry = {
@@ -16,11 +16,66 @@ export class WebhookNode implements AntigravityNode {
     };
 
     defaults = {
-        method: 'POST'
+        method: 'POST',
+        path: '/webhook'
     };
 
-    inputs = [];
+    inputs = ['method', 'path'];
     outputs = ['body', 'query', 'headers', 'method', 'path'];
+
+    handles = [
+        // Control Flow - Triggers typically only have flow-out
+        {
+            id: 'flow-out',
+            type: 'source' as const,
+            dataType: 'flow' as const,
+            label: 'Out'
+        },
+        // Data Inputs - Allow dynamic configuration
+        {
+            id: 'method',
+            type: 'target' as const,
+            dataType: 'string' as const,
+            label: 'HTTP Method'
+        },
+        {
+            id: 'path',
+            type: 'target' as const,
+            dataType: 'string' as const,
+            label: 'Webhook Path'
+        },
+        // Data Outputs
+        {
+            id: 'body',
+            type: 'source' as const,
+            dataType: 'json' as const,
+            label: 'Body'
+        },
+        {
+            id: 'query',
+            type: 'source' as const,
+            dataType: 'json' as const,
+            label: 'Query'
+        },
+        {
+            id: 'headers',
+            type: 'source' as const,
+            dataType: 'json' as const,
+            label: 'Headers'
+        },
+        {
+            id: 'method',
+            type: 'source' as const,
+            dataType: 'string' as const,
+            label: 'Method'
+        },
+        {
+            id: 'path',
+            type: 'source' as const,
+            dataType: 'string' as const,
+            label: 'Path'
+        }
+    ];
 
     async execute(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
         // The WebhookNode is a trigger, so its "execution" is mostly about passing through

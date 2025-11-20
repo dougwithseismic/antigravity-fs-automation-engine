@@ -64,6 +64,18 @@ Antigravity is a powerful, developer-first workflow engine that blends server-si
     - **Web App**: http://localhost:3000
     - **Docs**: http://localhost:3001
 
+### Metrics (Prometheus)
+
+Start Prometheus locally to scrape the worker metrics server:
+
+```bash
+docker compose up -d prometheus
+```
+
+- Config: `prometheus/prometheus.yml` (scrapes `host.docker.internal:9464/metrics` by default)
+- UI: http://localhost:9090
+- Ensure the worker is running with the `METRICS_*` env vars from `.env.example` so Prometheus can reach it.
+
 ## 🏗️ Architecture
 
 Antigravity is built as a monorepo using [Turbo](https://turbo.build/):

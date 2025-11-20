@@ -22,10 +22,12 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-resizable-panels": "^3.0.6",
-    "tailwind-merge": "^3.4.0"
+    "tailwind-merge": "^3.4.0",
+    "@repo/ui": "workspace:*"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@repo/types": "workspace:*",
     "@types/node": "^24.10.0",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",

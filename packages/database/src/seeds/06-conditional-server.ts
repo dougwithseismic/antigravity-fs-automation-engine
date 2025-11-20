@@ -1,9 +1,11 @@
+import { buildWorkflow } from './helpers';
+
 /**
  * Scenario 6: Conditional Branching (Server Only)
  * Condition node evaluates input and routes to different paths
  * All execution happens on server
  */
-export const conditionalServerWorkflow = {
+export const conditionalServerWorkflow = buildWorkflow({
     name: 'Customer Segmentation',
     description: 'Route customers based on VIP status for personalized discount offers',
     nodes: [
@@ -29,12 +31,16 @@ export const conditionalServerWorkflow = {
         // True branch - VIP path
         {
             id: '3',
-            type: 'discount',
+            type: 'shopify',
             position: { x: 100, y: 300 },
             data: {
                 label: 'VIP: 30% Discount',
-                prefix: 'VIP30',
-                percentage: 30
+                resource: 'discount',
+                operation: 'create',
+                payload: `{
+  "code": "VIP30",
+  "percentage": 30
+}`
             }
         },
         {
@@ -50,12 +56,16 @@ export const conditionalServerWorkflow = {
         // False branch - Regular path
         {
             id: '5',
-            type: 'discount',
+            type: 'shopify',
             position: { x: 400, y: 300 },
             data: {
                 label: 'Regular: 10% Discount',
-                prefix: 'SAVE10',
-                percentage: 10
+                resource: 'discount',
+                operation: 'create',
+                payload: `{
+  "code": "SAVE10",
+  "percentage": 10
+}`
             }
         },
         {
@@ -85,10 +95,10 @@ export const conditionalServerWorkflow = {
         { id: 'e2-3', source: '2', target: '3', condition: 'true' },
         { id: 'e2-5', source: '2', target: '5', condition: 'false' },
         // Continue to completion
-        { id: 'e3-4', source: '3', target: '4' },
-        { id: 'e5-6', source: '5', target: '6' },
+        { id: 'e3-4', source: '3', target: '4', sourceHandle: 'data', targetHandle: 'variables' },
+        { id: 'e5-6', source: '5', target: '6', sourceHandle: 'data', targetHandle: 'variables' },
         // Converge
         { id: 'e4-7', source: '4', target: '7' },
         { id: 'e6-7', source: '6', target: '7' }
     ]
-};
+});

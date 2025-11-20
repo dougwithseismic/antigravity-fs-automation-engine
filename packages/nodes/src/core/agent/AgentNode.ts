@@ -5,6 +5,8 @@ export class AgentNode implements AntigravityNode {
     displayName = 'Agent';
     description = 'Define the agent\'s instructions, then enter a task to complete using tools.';
     version = 1;
+    inputs = ['model', 'instructions', 'tools', 'input'];
+    outputs = ['response'];
     category = 'AI' as const;
     tags = ['llm', 'agent', 'ai'];
 
@@ -13,34 +15,76 @@ export class AgentNode implements AntigravityNode {
         input: ''
     };
 
+    handles = [
+        // Control Flow
+        {
+            id: 'flow-in',
+            type: 'target' as const,
+            dataType: 'flow' as const,
+            label: 'In'
+        },
+        {
+            id: 'flow-out',
+            type: 'source' as const,
+            dataType: 'flow' as const,
+            label: 'Out'
+        },
+        // Data Inputs
+        {
+            id: 'model',
+            type: 'target' as const,
+            dataType: 'model' as const,
+            label: 'Language Model'
+        },
+        {
+            id: 'tools',
+            type: 'target' as const,
+            dataType: 'tool' as const,
+            label: 'Tools',
+            acceptsMultiple: true
+        },
+        {
+            id: 'chat-input',
+            type: 'target' as const,
+            dataType: 'string' as const,
+            label: 'Chat Input'
+        },
+        // Data Outputs
+        {
+            id: 'response',
+            type: 'source' as const,
+            dataType: 'string' as const,
+            label: 'Response'
+        }
+    ];
+
     ui = {
         icon: 'agent',
+        // UI configuration for the node settings panel (sidebar)
         inputs: [
             {
                 id: 'model',
-                label: 'Language Model',
-                type: 'select' as const,
-                defaultValue: 'gpt-4',
-                options: ['gpt-4', 'gpt-3.5-turbo', 'claude-3-opus', 'claude-3-sonnet'],
+                label: 'Model Provider',
+                type: 'select' as const, // Placeholder for connection
+                placeholder: 'Connect LLM Provider...',
                 required: true,
                 connection: {
                     enabled: true,
-                    type: 'languageModel'
+                    type: 'model'
                 }
             },
             {
                 id: 'instructions',
-                label: 'Agent Instructions',
+                label: 'System Instructions',
                 type: 'textarea' as const,
-                defaultValue: 'You are a helpful assistant that can use tools.',
+                defaultValue: 'You are a helpful assistant.',
                 placeholder: 'Enter system instructions...',
                 required: true
             },
             {
                 id: 'tools',
                 label: 'Tools',
-                type: 'select' as const, // Visual placeholder, effectively a connection point
-                defaultValue: '',
+                type: 'select' as const,
                 placeholder: 'Connect tools...',
                 connection: {
                     enabled: true,
@@ -48,11 +92,10 @@ export class AgentNode implements AntigravityNode {
                 }
             },
             {
-                id: 'input',
-                label: 'Input',
+                id: 'chat-input',
+                label: 'Chat Input',
                 type: 'textarea' as const,
-                defaultValue: '',
-                placeholder: 'Receiving input',
+                placeholder: 'Enter message...',
                 connection: {
                     enabled: true,
                     type: 'string'

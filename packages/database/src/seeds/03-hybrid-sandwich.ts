@@ -1,9 +1,11 @@
+import { buildWorkflow } from './helpers';
+
 /**
  * Scenario 3: Hybrid Sandwich (Server → Client → Server)
  * Server processes, waits for client input, continues on server
  * Classic suspended workflow pattern
  */
-export const hybridSandwichWorkflow = {
+export const hybridSandwichWorkflow = buildWorkflow({
     name: 'Lead Capture & Qualification',
     description: 'Client form collection → Server processing → Client confirmation flow',
     nodes: [
@@ -34,12 +36,16 @@ export const hybridSandwichWorkflow = {
         },
         {
             id: '4',
-            type: 'discount',
+            type: 'shopify',
             position: { x: 100, y: 400 },
             data: {
                 label: 'Generate Code (Server)',
-                prefix: 'SAVE20',
-                percentage: 20
+                resource: 'discount',
+                operation: 'create',
+                payload: `{
+  "code": "SAVE20",
+  "percentage": 20
+}`
             }
         },
         {
@@ -67,7 +73,8 @@ export const hybridSandwichWorkflow = {
         { id: 'e1-2', source: '1', target: '2' },
         { id: 'e2-3', source: '2', target: '3' },
         { id: 'e3-4', source: '3', target: '4' },
-        { id: 'e4-5', source: '4', target: '5' },
+        { id: 'e3-5', source: '3', target: '5', sourceHandle: 'email', targetHandle: 'to' },
+        { id: 'e4-5', source: '4', target: '5', sourceHandle: 'data', targetHandle: 'variables' },
         { id: 'e5-6', source: '5', target: '6' }
     ]
-};
+});

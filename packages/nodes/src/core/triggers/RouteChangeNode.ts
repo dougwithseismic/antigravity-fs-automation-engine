@@ -15,6 +15,41 @@ export class RouteChangeNode implements AntigravityNode {
     inputs = [];
     outputs = ['path', 'params', 'query', 'hash'];
 
+    handles = [
+        // Control Flow - Triggers typically only have flow-out
+        {
+            id: 'flow-out',
+            type: 'source' as const,
+            dataType: 'flow' as const,
+            label: 'Out'
+        },
+        // Data Outputs
+        {
+            id: 'path',
+            type: 'source' as const,
+            dataType: 'string' as const,
+            label: 'Path'
+        },
+        {
+            id: 'params',
+            type: 'source' as const,
+            dataType: 'json' as const,
+            label: 'Params'
+        },
+        {
+            id: 'query',
+            type: 'source' as const,
+            dataType: 'json' as const,
+            label: 'Query'
+        },
+        {
+            id: 'hash',
+            type: 'source' as const,
+            dataType: 'string' as const,
+            label: 'Hash'
+        }
+    ];
+
     async execute(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
         // The RouteChangeNode is a client-side trigger.
         // Its "execution" is mostly about passing through the navigation data

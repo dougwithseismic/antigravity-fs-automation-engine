@@ -21,16 +21,56 @@ interface WorkflowNode {
     environment?: string;
 }
 
+interface WorkflowEdge {
+    id?: string;
+    source: string;
+    target: string;
+    sourceHandle?: string | null;
+    targetHandle?: string | null;
+    condition?: string;
+    style?: 'solid' | 'dashed' | 'dotted' | 'long-dash' | 'dash-dot';
+}
+
 interface WorkflowGraphProps {
     nodes: WorkflowNode[];
-    edges: Array<{ source: string; target: string }>;
+    edges: WorkflowEdge[];
     activeNodeId?: string;
     hoveredNodeId?: string;
     onNodeHover?: (nodeId: string | null) => void;
     executedNodeIds?: Set<string>;
+    edgeType?: 'default' | 'straight' | 'step' | 'smoothstep';
+    snapToGrid?: boolean;
+    snapGrid?: [number, number];
 }
 
-export function WorkflowGraph({ nodes, edges, activeNodeId, hoveredNodeId, onNodeHover, executedNodeIds = new Set() }: WorkflowGraphProps) {
+export function WorkflowGraph({
+    nodes,
+    edges,
+    activeNodeId,
+    hoveredNodeId,
+    onNodeHover,
+    executedNodeIds = new Set(),
+    edgeType = 'default',
+    snapToGrid = false,
+    snapGrid = [15, 15],
+}: WorkflowGraphProps) {
+    // Helper function to get stroke dash array based on style
+    const getStrokeDashArray = (style?: string): string | undefined => {
+        switch (style) {
+            case 'dashed':
+                return '8 8';
+            case 'dotted':
+                return '2 6';
+            case 'long-dash':
+                return '16 8';
+            case 'dash-dot':
+                return '12 4 2 4';
+            case 'solid':
+            default:
+                return undefined;
+        }
+    };
+
     // Helper function to build flow nodes
     const buildFlowNodes = (): Node[] => {
         return nodes.map((node, index) => {
@@ -71,21 +111,28 @@ export function WorkflowGraph({ nodes, edges, activeNodeId, hoveredNodeId, onNod
             const sourceExecuted = executedNodeIds.has(String(edge.source));
             const isActiveEdge = activeNodeId === String(edge.source) || activeNodeId === String(edge.target);
             const isPending = !sourceExecuted;
+            const baseColor = '#3b5af1';
+            const pendingColor = '#cdd5e7';
+            const activeColor = '#0ea36e';
 
             return {
-                id: `e${i}-${edge.source}-${edge.target}`,
+                id: edge.id || `e${i}-${edge.source}-${edge.target}`,
                 source: String(edge.source),
                 target: String(edge.target),
-                type: 'default',
+                sourceHandle: edge.sourceHandle || undefined,
+                targetHandle: edge.targetHandle || undefined,
+                type: edgeType,
                 animated: isActiveEdge,
+                label: edge.condition ? `when ${edge.condition}` : undefined,
                 markerEnd: {
                     type: MarkerType.ArrowClosed,
-                    color: isPending ? '#444' : isActiveEdge ? '#4caf50' : '#646cff',
+                    color: isPending ? pendingColor : isActiveEdge ? activeColor : baseColor,
                 },
                 style: {
-                    stroke: isPending ? '#444' : isActiveEdge ? '#4caf50' : '#646cff',
-                    strokeWidth: 3,
-                    opacity: isPending ? 0.3 : 1,
+                    stroke: isPending ? pendingColor : isActiveEdge ? activeColor : baseColor,
+                    strokeWidth: 2.7,
+                    opacity: isPending ? 0.35 : 1,
+                    strokeDasharray: edge.style ? getStrokeDashArray(edge.style) : (isPending ? '8 8' : undefined),
                 },
             };
         });
@@ -112,8 +159,10 @@ export function WorkflowGraph({ nodes, edges, activeNodeId, hoveredNodeId, onNod
                 attributionPosition="bottom-left"
                 onNodeMouseEnter={(_, node) => onNodeHover?.(node.id)}
                 onNodeMouseLeave={() => onNodeHover?.(null)}
+                snapToGrid={snapToGrid}
+                snapGrid={snapGrid}
             >
-                <Background />
+                <Background color="#1f2738" gap={20} size={1} />
                 <Controls />
 
             </ReactFlow>

@@ -17,10 +17,54 @@ export class BannerFormNode implements AntigravityNode {
     displayName = 'Banner Form';
     description = 'Display a banner form on the client side';
     version = 1;
+    inputs = ['message'];
+    outputs = ['email', 'name', 'formData'];
     category = 'UI' as const;
     tags = ['form', 'client', 'banner', 'lead-capture'];
     environment = 'client' as const;
     defaults = {};
+
+    handles = [
+        // Control Flow
+        {
+            id: 'flow-in',
+            type: 'target' as const,
+            dataType: 'flow' as const,
+            label: 'In'
+        },
+        {
+            id: 'flow-out',
+            type: 'source' as const,
+            dataType: 'flow' as const,
+            label: 'Out'
+        },
+        // Data Inputs
+        {
+            id: 'message',
+            type: 'target' as const,
+            dataType: 'string' as const,
+            label: 'Message'
+        },
+        // Data Outputs
+        {
+            id: 'email',
+            type: 'source' as const,
+            dataType: 'string' as const,
+            label: 'Email'
+        },
+        {
+            id: 'name',
+            type: 'source' as const,
+            dataType: 'string' as const,
+            label: 'Name'
+        },
+        {
+            id: 'formData',
+            type: 'source' as const,
+            dataType: 'json' as const,
+            label: 'Form Data'
+        }
+    ];
 
     ui = {
         icon: 'banner',

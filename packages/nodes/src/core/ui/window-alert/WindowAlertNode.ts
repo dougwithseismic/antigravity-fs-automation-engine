@@ -16,10 +16,42 @@ export class WindowAlertNode implements AntigravityNode {
     displayName = 'Window Alert';
     description = 'Display an alert message on the client side';
     version = 1;
+    inputs = ['message'];
+    outputs = ['displayed'];
     category = 'UI' as const;
     tags = ['alert', 'client', 'notification'];
     environment = 'client' as const;
     defaults = {};
+
+    handles = [
+        // Control Flow
+        {
+            id: 'flow-in',
+            type: 'target' as const,
+            dataType: 'flow' as const,
+            label: 'In'
+        },
+        {
+            id: 'flow-out',
+            type: 'source' as const,
+            dataType: 'flow' as const,
+            label: 'Out'
+        },
+        // Data Inputs
+        {
+            id: 'message',
+            type: 'target' as const,
+            dataType: 'string' as const,
+            label: 'Message'
+        },
+        // Data Outputs
+        {
+            id: 'displayed',
+            type: 'source' as const,
+            dataType: 'boolean' as const,
+            label: 'Displayed'
+        }
+    ];
 
     ui = {
         icon: 'alert',

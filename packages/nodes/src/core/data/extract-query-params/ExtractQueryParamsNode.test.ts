@@ -13,7 +13,10 @@ describe('ExtractQueryParamsNode', () => {
         });
 
         expect(result.status).toBe('success');
-        expect(result.output).toEqual({ foo: 'bar', baz: 'qux' });
+        expect(result.output).toEqual({
+            params: { foo: 'bar', baz: 'qux' },
+            paramCount: 2
+        });
     });
 
     it('should handle URL without params', async () => {
@@ -26,7 +29,10 @@ describe('ExtractQueryParamsNode', () => {
         });
 
         expect(result.status).toBe('success');
-        expect(result.output).toEqual({});
+        expect(result.output).toEqual({
+            params: {},
+            paramCount: 0
+        });
     });
 
     it('should fail with invalid URL', async () => {

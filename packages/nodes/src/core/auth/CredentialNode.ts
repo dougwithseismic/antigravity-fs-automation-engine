@@ -5,12 +5,37 @@ export class CredentialNode implements AntigravityNode {
     displayName = 'Credentials';
     description = 'Load credentials from environment variables';
     version = 1;
+    inputs = ['key'];
+    outputs = ['value'];
     category = 'Utility' as const;
     tags = ['env', 'secrets', 'auth'];
 
     defaults = {
         key: ''
     };
+
+    handles = [
+        // Control Flow
+        {
+            id: 'flow-in',
+            type: 'target' as const,
+            dataType: 'flow' as const,
+            label: 'In'
+        },
+        {
+            id: 'flow-out',
+            type: 'source' as const,
+            dataType: 'flow' as const,
+            label: 'Out'
+        },
+        // Data Outputs
+        {
+            id: 'credential',
+            type: 'source' as const,
+            dataType: 'credential' as const,
+            label: 'Credential'
+        }
+    ];
 
     ui = {
         icon: 'key',
@@ -25,8 +50,8 @@ export class CredentialNode implements AntigravityNode {
         ],
         outputs: [
             {
-                id: 'value',
-                label: 'Value',
+                id: 'credential',
+                label: 'Credential',
                 type: 'credentials.env'
             }
         ]

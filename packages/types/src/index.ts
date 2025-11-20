@@ -54,7 +54,11 @@ export interface ExecutionContext {
     executionId: number;
     input: any;
     results: Record<string, NodeExecutionResult>;
-    steps?: ExecutionStep[]; // NEW: Clean step-by-step execution history
+    steps?: ExecutionStep[]; // Clean step-by-step execution history
+    workflow?: {
+        nodes: WorkflowNode[];
+        edges: WorkflowEdge[];
+    }; // Workflow topology for nodes that need to inspect the graph structure
 }
 
 export type NodeExecutionArgs = {

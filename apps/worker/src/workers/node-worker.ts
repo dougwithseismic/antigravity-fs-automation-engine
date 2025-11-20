@@ -5,11 +5,18 @@ import { executions, workflows } from '@repo/database/schema';
 import { eq } from 'drizzle-orm';
 import { createLogger, withExecutionContext, Logger } from '@repo/logger';
 import { nodeExecutionCounter, nodeExecutionDuration } from '@repo/metrics';
+import { ExecutionContext, NodeExecutionResult, WorkflowNode } from '@repo/types';
 
 // Import execution state service and node registry
-import { executionStateService } from '../services/execution-state';
+import { executionStateService, ExecutionState } from '../services/execution-state';
 import { sandbox } from '../services/sandbox';
 import { nodeRegistry } from '../registry/node-registry';
+
+type WorkerNodeResult = {
+    status: 'completed' | 'failed' | 'suspended';
+    output?: any;
+    error?: any;
+};
 
 /**
  * Execute node logic by type
@@ -17,19 +24,25 @@ import { nodeRegistry } from '../registry/node-registry';
  */
 const logger = createLogger({ name: 'node-worker' });
 
-const executeNodeLogic = async (nodeType: string, input: any, nodeData?: any, jobLogger?: Logger) => {
+const executeNodeLogic = async (
+    node: WorkflowNode,
+    input: any,
+    context: ExecutionContext,
+    jobLogger?: Logger
+): Promise<WorkerNodeResult> => {
     const log = jobLogger || logger;
+    const nodeType = node.type;
     log.debug({ nodeType, inputKeys: Object.keys(input) }, 'Executing node logic');
 
     // Special case: CodeNode uses SandboxService
     if (nodeType === 'code') {
-        const code = input.code || nodeData?.code;
+        const code = input.code || node.data?.code;
         if (!code) {
             throw new Error('No code provided for CodeNode');
         }
 
         try {
-            const result = await sandbox.execute(code, { input });
+            const result = await sandbox.execute(code, { input, context });
             return { status: 'completed', output: result };
         } catch (error: any) {
             throw new Error(`CodeNode execution failed: ${error.message}`);
@@ -44,21 +57,10 @@ const executeNodeLogic = async (nodeType: string, input: any, nodeData?: any, jo
 
     try {
         // Execute node using its executor
-        // Note: nodeData is the `data` property of the WorkflowNode
         const result = await nodeExecutor.execute({
-            node: {
-                id: 'temp', // Will be set by NodeWorker
-                type: nodeType,
-                position: { x: 0, y: 0 },
-                data: nodeData || {},
-            },
+            node,
             input,
-            context: {
-                workflowId: 0, // TODO: Pass from job data
-                executionId: 0, // TODO: Pass from job data
-                input: {},
-                results: {},
-            },
+            context,
         });
 
         return {
@@ -158,12 +160,45 @@ export class NodeWorker {
                 },
             });
 
-            // 5. Execute node
+            // 5. Execute node (or suspend if client-side)
             jobLogger.debug({ nodeDef }, 'Loaded node definition');
 
-            let result;
+            const executionContext = this.buildExecutionContext({
+                workflowId,
+                executionId,
+                input,
+                state: currentState,
+                workflow,
+            });
+
+            let result: WorkerNodeResult;
             try {
-                result = await executeNodeLogic(nodeDef.type, input, nodeDef.data, jobLogger);
+                // If the node is intended for client execution, suspend immediately and emit metadata
+                if (nodeDef.environment === 'client') {
+                    result = {
+                        status: 'suspended',
+                        output: {
+                            reason: 'client_execution',
+                            nodeId,
+                            workflowId,
+                            executionId,
+                            input,
+                        },
+                    };
+                } else {
+                    result = await executeNodeLogic(
+                        {
+                            id: nodeId,
+                            type: nodeDef.type,
+                            position: nodeDef.position,
+                            data: nodeDef.data || {},
+                            environment: nodeDef.environment,
+                        },
+                        input,
+                        executionContext,
+                        jobLogger
+                    );
+                }
             } catch (error: any) {
                 // Handle unknown node type specifically - fail immediately, no retry
                 if (error.message.includes('Unknown node type')) {
@@ -335,6 +370,37 @@ export class NodeWorker {
         }
     }
 
+    /**
+     * Get incoming edges for a node
+     */
+    private getIncomingEdges(nodeId: string, edges: any[]): any[] {
+        return edges.filter((e: any) => e.target === nodeId);
+    }
+
+    /**
+     * Check if all inputs are ready for a node with multiple incoming edges
+     */
+    private async areAllInputsReady(
+        executionId: number,
+        nodeId: string,
+        edges: any[]
+    ): Promise<boolean> {
+        const incomingEdges = this.getIncomingEdges(nodeId, edges);
+
+        // If there are 0 or 1 incoming edges, no need to wait
+        if (incomingEdges.length <= 1) {
+            return true;
+        }
+
+        // Check if all source nodes have completed
+        const state = await executionStateService.getState(executionId);
+        if (!state) return false;
+
+        return incomingEdges.every((edge: any) => {
+            return state.completedNodes.includes(edge.source);
+        });
+    }
+
     private async isWorkflowComplete(executionId: number, workflowId: number): Promise<boolean> {
         const state = await executionStateService.getState(executionId);
         if (!state) return false;
@@ -427,6 +493,17 @@ export class NodeWorker {
         }, {});
 
         for (const edge of childEdges) {
+            // Check if the target node requires multiple inputs
+            const allInputsReady = await this.areAllInputsReady(executionId, edge.target, edges);
+
+            if (!allInputsReady) {
+                logger.debug(
+                    { targetNodeId: edge.target, executionId, workflowId },
+                    'Node has multiple inputs - waiting for other inputs to complete'
+                );
+                continue; // Skip enqueuing - another parent will enqueue when ready
+            }
+
             await nodeQueue.add('execute-node', {
                 executionId,
                 nodeId: edge.target,
@@ -501,5 +578,52 @@ export class NodeWorker {
         });
 
         logger.info({ executionId, nodeId, delayMs, nextNodeCount: childEdges.length }, 'Scheduled resume job');
+    }
+
+    /**
+     * Build execution context passed into node executors.
+     * Includes prior step results to enable nodes to read past outputs.
+     */
+    private buildExecutionContext({
+        workflowId,
+        executionId,
+        input,
+        state,
+        workflow,
+    }: {
+        workflowId: number;
+        executionId: number;
+        input: any;
+        state: ExecutionState;
+        workflow?: any;
+    }): ExecutionContext {
+        const results: Record<string, NodeExecutionResult> = {};
+
+        Object.values(state?.stepsByNodeId || {}).forEach((step) => {
+            const normalizedStatus: NodeExecutionResult['status'] =
+                step.status === 'failed'
+                    ? 'failed'
+                    : step.status === 'suspended'
+                        ? 'suspended'
+                        : 'success';
+
+            results[step.nodeId] = {
+                status: normalizedStatus,
+                output: step.output,
+                error: step.error?.message,
+            };
+        });
+
+        return {
+            workflowId,
+            executionId,
+            input,
+            results,
+            steps: state?.steps || [],
+            workflow: workflow ? {
+                nodes: workflow.nodes || [],
+                edges: workflow.edges || []
+            } : undefined,
+        };
     }
 }

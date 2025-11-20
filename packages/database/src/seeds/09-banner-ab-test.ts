@@ -1,9 +1,11 @@
+import { buildWorkflow } from './helpers';
+
 /**
  * Scenario 9: Banner A/B Test
  * Randomly show banner vs no banner
  * Track which variant performs better
  */
-export const bannerABTestWorkflow = {
+export const bannerABTestWorkflow = buildWorkflow({
     name: 'Banner A/B Test',
     description: 'Randomly show banner vs no banner → Track conversion rates',
     nodes: [
@@ -120,7 +122,7 @@ export const bannerABTestWorkflow = {
         { id: 'e3-8', source: '3', target: '8', condition: 'B' },
         // Variant A path
         { id: 'e4-5', source: '4', target: '5' },
-        { id: 'e5-6', source: '5', target: '6' },
+        { id: 'e5-6', source: '5', target: '6', sourceHandle: 'email', targetHandle: 'properties' },
         { id: 'e6-7', source: '6', target: '7' },
         { id: 'e7-11', source: '7', target: '11' },
         // Variant B path
@@ -128,4 +130,4 @@ export const bannerABTestWorkflow = {
         { id: 'e9-10', source: '9', target: '10' },
         { id: 'e10-11', source: '10', target: '11' }
     ]
-};
+});

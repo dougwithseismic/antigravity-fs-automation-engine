@@ -1,9 +1,11 @@
+import { buildWorkflow } from './helpers';
+
 /**
  * Scenario 7: A/B Testing with Google Search Mockup
  * User selects traffic source (PPC, Shopping, Organic)
  * Different paths based on selection with realistic landing pages
  */
-export const conditionalMixedWorkflow = {
+export const conditionalMixedWorkflow = buildWorkflow({
     name: 'A/B Testing Flow',
     description: 'Interactive Google search → Different experiences based on traffic source (PPC/Shopping/Organic)',
     nodes: [
@@ -97,16 +99,16 @@ export const conditionalMixedWorkflow = {
     ],
     edges: [
         { id: 'e1-2', source: '1', target: '2' },
-        { id: 'e2-3', source: '2', target: '3' },
+        { id: 'e2-3', source: '2', target: '3', sourceHandle: 'source', targetHandle: 'value' },
         // Switch to three branches
         { id: 'e3-4', source: '3', target: '4', condition: 'ppc' },
         { id: 'e3-6', source: '3', target: '6', condition: 'shopping' },
         { id: 'e3-8', source: '3', target: '8', condition: 'organic' },
         // PPC path
-        { id: 'e4-5', source: '4', target: '5' },
+        { id: 'e4-5', source: '4', target: '5', sourceHandle: 'code', targetHandle: 'message' },
         // Shopping path
-        { id: 'e6-7', source: '6', target: '7' },
+        { id: 'e6-7', source: '6', target: '7', sourceHandle: 'code', targetHandle: 'message' },
         // Organic path
-        { id: 'e8-9', source: '8', target: '9' }
+        { id: 'e8-9', source: '8', target: '9', sourceHandle: 'eventName', targetHandle: 'variables' }
     ]
-};
+});

@@ -1,9 +1,11 @@
+import { buildWorkflow } from './helpers';
+
 /**
  * Scenario 2: Client-Only Linear Workflow
  * All nodes execute on client in sequence
  * Server orchestrates but all execution is client-side
  */
-export const clientLinearWorkflow = {
+export const clientLinearWorkflow = buildWorkflow({
     name: 'User Onboarding Wizard',
     description: 'Multi-step client-side form wizard with progressive data collection',
     nodes: [
@@ -47,7 +49,7 @@ export const clientLinearWorkflow = {
     ],
     edges: [
         { id: 'e1-2', source: '1', target: '2' },
-        { id: 'e2-3', source: '2', target: '3' },
+        { id: 'e2-3', source: '2', target: '3', sourceHandle: 'email', targetHandle: 'message' },
         { id: 'e3-4', source: '3', target: '4' }
     ]
-};
+});

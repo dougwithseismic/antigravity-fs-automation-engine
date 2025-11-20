@@ -6,6 +6,45 @@ export class CodeNode implements AntigravityNode {
     displayName = 'Code';
     description = 'Description for code';
     version = 1;
+    inputs = ['code', 'mode'];
+    outputs = ['result'];
+
+    handles = [
+        // Control Flow
+        {
+            id: 'flow-in',
+            type: 'target' as const,
+            dataType: 'flow' as const,
+            label: 'In'
+        },
+        {
+            id: 'flow-out',
+            type: 'source' as const,
+            dataType: 'flow' as const,
+            label: 'Out'
+        },
+        // Data Inputs
+        {
+            id: 'code',
+            type: 'target' as const,
+            dataType: 'string' as const,
+            label: 'JavaScript Code'
+        },
+        {
+            id: 'mode',
+            type: 'target' as const,
+            dataType: 'string' as const,
+            label: 'Execution Mode'
+        },
+        // Data Outputs
+        {
+            id: 'result',
+            type: 'source' as const,
+            dataType: 'json' as const,
+            label: 'Result'
+        }
+    ];
+
     retry = {
         attempts: 1, // Code errors are likely permanent - don't retry
         backoff: {
@@ -14,6 +53,36 @@ export class CodeNode implements AntigravityNode {
         },
     };
     defaults = {};
+    ui = {
+        icon: 'code',
+        inputs: [
+            {
+                id: 'code',
+                label: 'JavaScript',
+                type: 'textarea' as const,
+                placeholder: '// return something from here',
+                required: true,
+                connection: {
+                    enabled: true,
+                    type: 'string'
+                }
+            },
+            {
+                id: 'mode',
+                label: 'Execution Mode',
+                type: 'select' as const,
+                defaultValue: 'runOnce',
+                options: ['runOnce']
+            }
+        ],
+        outputs: [
+            {
+                id: 'result',
+                label: 'Result',
+                type: 'json'
+            }
+        ]
+    };
 
     async execute({ input, node }: NodeExecutionArgs): Promise<NodeExecutionResult> {
         const code = input.code || node.data?.code;

@@ -3,6 +3,8 @@ import { FetchNode } from '@antigravity/nodes';
 import { CodeNode } from '@antigravity/nodes';
 import { SwitchNode } from '@antigravity/nodes';
 import { WaitNode } from '@antigravity/nodes';
+import { MergeNode } from '@antigravity/nodes';
+import { HumanApprovalNode } from '@antigravity/nodes';
 import { ExtractQueryParamsNode } from '@antigravity/nodes';
 import { FilterNode } from '@antigravity/nodes';
 import { StartNode } from '@antigravity/nodes';
@@ -13,6 +15,8 @@ import { BannerFormNode } from '@antigravity/nodes';
 import { WindowAlertNode } from '@antigravity/nodes';
 import { EmailNode } from '@antigravity/nodes';
 import { WebhookNode } from '@antigravity/nodes';
+import { PipedreamActionNode } from '@antigravity/nodes';
+import { CredentialNode } from '@antigravity/nodes';
 
 /**
  * Node Registry - Maps node types to their executors
@@ -30,16 +34,20 @@ export class NodeRegistry {
         this.register('code', new CodeNode());
         this.register('switch', new SwitchNode());
         this.register('wait', new WaitNode());
+        this.register('merge', new MergeNode());
+        this.register('human-approval', new HumanApprovalNode());
         this.register('extract-query-params', new ExtractQueryParamsNode());
         this.register('filter', new FilterNode());
         this.register('start', new StartNode());
         this.register('condition', new ConditionNode());
         this.register('analytics', new AnalyticsNode());
         this.register('discount', new DiscountNode());
+        this.register('credential', new CredentialNode());
         this.register('banner-form', new BannerFormNode());
         this.register('window-alert', new WindowAlertNode());
         this.register('email', new EmailNode());
         this.register('webhook', new WebhookNode());
+        this.register('pipedream-action', new PipedreamActionNode());
     }
 
     register(type: string, node: AntigravityNode) {

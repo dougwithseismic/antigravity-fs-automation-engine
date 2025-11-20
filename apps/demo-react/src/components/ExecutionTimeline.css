@@ -1,22 +1,24 @@
 .execution-timeline {
     margin: 20px 0;
     padding: 20px;
-    background: #f8f9fa;
-    border-radius: 8px;
+    background: #0f1626;
+    border-radius: 14px;
+    border: 1px solid #1d2233;
+    box-shadow: 0 18px 44px -36px rgba(0, 0, 0, 0.55);
 }
 
 .execution-timeline h3 {
     margin: 0 0 16px 0;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
-    color: #212529;
+    color: #e2e8f0;
 }
 
 .timeline-item {
     display: flex;
     gap: 15px;
     padding: 12px 0;
-    border-left: 2px solid #dee2e6;
+    border-left: 2px dashed #1f2738;
     margin-left: 10px;
     position: relative;
 }
@@ -30,8 +32,8 @@
     left: -11px;
     width: 20px;
     height: 20px;
-    background: white;
-    border: 2px solid #dee2e6;
+    background: #0c1220;
+    border: 2px solid #1d2233;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -40,28 +42,28 @@
 }
 
 .status-completed .timeline-marker {
-    border-color: #28a745;
-    background: #d4edda;
+    border-color: #0ea36e;
+    background: rgba(14, 163, 110, 0.12);
 }
 
 .status-running .timeline-marker {
-    border-color: #17a2b8;
-    background: #d1ecf1;
+    border-color: #3b5af1;
+    background: rgba(59, 90, 241, 0.12);
 }
 
 .status-suspended .timeline-marker {
-    border-color: #ffc107;
-    background: #fff3cd;
+    border-color: #f59e0b;
+    background: rgba(245, 158, 11, 0.12);
 }
 
 .status-failed .timeline-marker {
-    border-color: #dc3545;
-    background: #f8d7da;
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.12);
 }
 
 .status-pending .timeline-marker {
-    border-color: #6c757d;
-    background: #e9ecef;
+    border-color: #cbd5e1;
+    background: #f1f5f9;
 }
 
 .timeline-content {
@@ -78,42 +80,42 @@
 }
 
 .node-type {
-    background: #e9ecef;
+    background: rgba(77, 93, 255, 0.14);
     padding: 2px 8px;
     border-radius: 4px;
     font-size: 12px;
     margin-right: 8px;
-    color: #495057;
+    color: #c6d2ff;
     font-family: 'Monaco', 'Courier New', monospace;
 }
 
 .node-name {
-    color: #212529;
-    font-size: 14px;
+    color: #e2e8f0;
+    font-size: 13px;
 }
 
 .timing-info {
     font-size: 12px;
-    color: #6c757d;
+    color: #94a3b8;
     display: flex;
     gap: 12px;
 }
 
 .duration {
     font-weight: 500;
-    color: #495057;
+    color: #cbd5e1;
 }
 
 .timestamp {
-    color: #868e96;
+    color: #9ca3af;
 }
 
 .error-info {
     margin-top: 8px;
     padding: 8px;
-    background: #f8d7da;
-    border-left: 3px solid #dc3545;
+    background: rgba(239, 68, 68, 0.08);
+    border-left: 3px solid #ef4444;
     border-radius: 4px;
     font-size: 12px;
-    color: #721c24;
+    color: #991b1b;
 }
