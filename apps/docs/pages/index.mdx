@@ -1,12 +1,28 @@
 # Introduction
 
+Antigravity is a workflow engine that brings automation to where users actually are: the browser.
 
-- **Growth Engineers**: Who need to rapidly experiment with user flows, onboarding experiences, and conversion funnels without waiting for backend deployment cycles.
-- **CRO Specialists**: Who want to implement complex A/B tests and personalization logic that goes beyond simple text swaps.
-- **Frontend Developers**: Who want to decouple business logic from UI components, making their applications more flexible and easier to maintain.
+Unlike traditional automation platforms like N8N or Make.com that run everything on a server, Antigravity lets workflows pause for human (or AI agent) input and resume with full context intact - no webhook hell, no state reconstruction nightmares.
 
-## Why is it important?
+## Who is this for?
 
-- **Iteration Speed**: Change workflow logic instantly without redeploying your application.
-- **Client-Side Execution**: Access the full context of the browser (cookies, local storage, DOM) to make smarter decisions.
-- **Modern Stack**: Built with Next.js, Hono, and React Flow, it fits perfectly into modern web development workflows.
+- **Engineers exploring hybrid execution models**: Who want to understand how workflows can seamlessly span server and client
+- **Teams building human-in-the-loop systems**: Who need workflows that pause for approvals, decisions, or data entry
+- **Developers integrating AI agents**: Who want agents to participate in workflows alongside humans
+- **Anyone tired of Make.com's limitations**: Who've hit the wall trying to build interactive workflows in server-only platforms
+
+## Why does this matter?
+
+Most automation tools assume workflows run completely unattended on a server. But real-world processes often need human judgment or AI agent input at critical moments.
+
+Traditional platforms handle this badly:
+- Workflows have to end and restart (losing context)
+- State reconstruction via correlation IDs and webhooks
+- No real-time feedback for users
+- Limited UI interactivity
+
+Antigravity flips the model:
+- **Pause/resume with preserved context**: Workflows don't end, they wait
+- **Client-side execution**: Nodes can run in the browser with rich UIs
+- **Real-time state sync**: No polling, instant updates
+- **Composable components**: Visual language built in Storybook

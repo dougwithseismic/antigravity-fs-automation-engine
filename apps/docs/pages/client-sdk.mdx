@@ -1,6 +1,22 @@
 # Client SDK
 
-The `@antigravity/client-sdk` enables your frontend applications to participate in hybrid workflows. It handles the "Hot Potato" protocol, executing client-side nodes and communicating with the Antigravity API.
+The `@antigravity/client-sdk` is what makes hybrid execution work. It turns your browser into a first-class participant in workflow execution.
+
+This is the core difference from Make.com and N8N: instead of workflows running entirely on a server (and awkwardly trying to involve users via webhooks), nodes can execute right in the browser with full access to UI components, user interaction, and browser APIs.
+
+## Why a client SDK?
+
+Traditional automation platforms are server-centric. To get user input, they have to:
+1. End the workflow
+2. Send an email/webhook with a link
+3. User clicks → triggers a new workflow
+4. New workflow reconstructs state from correlation IDs
+
+This is fragile and slow. Antigravity's client SDK handles workflow execution in the browser, so:
+- Workflows pause, not end
+- Users see live UI updates
+- State is preserved throughout
+- No webhooks or correlation IDs needed
 
 ## Installation
 

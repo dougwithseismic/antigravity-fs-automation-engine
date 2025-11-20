@@ -1,13 +1,66 @@
-# Antigravity Engine
+# The Orchestration Engine
 
-The **Antigravity Engine** is a powerful, graph-based workflow orchestration engine designed for hybrid execution environments. It seamlessly manages state across server-side logic and client-side interactions.
+The Antigravity engine is built around a simple idea: workflows should be able to pause and wait for input (human or AI) without losing their place.
 
-## Key Features
+This is surprisingly hard to do in traditional automation platforms, where everything runs on the server and "pausing" means ending the workflow and starting a new one later.
 
--   **Graph-Based Execution**: Workflows are defined as directed graphs of nodes and edges.
--   **Hybrid Execution ("Hot Potato")**: Execution can suspend on the server, hand off to a client (browser/device), and resume on the server with the result.
--   **Stateful & Resumable**: Every step is persisted. Workflows can be paused for days (e.g., waiting for human approval) and resumed without data loss.
--   **Idempotency**: Re-running a completed step returns the cached result, ensuring safety.
+## What makes this different
+
+### Traditional workflow engines (Make.com, N8N)
+
+- Everything runs on the server
+- To wait for user input, workflow must end
+- Resume by triggering a new workflow via webhook
+- Original context must be reconstructed using correlation IDs
+- Complex, fragile, expensive to maintain
+
+### Antigravity's approach
+
+- **Hybrid execution**: Nodes can run on server OR client
+- **True pause/resume**: Execution suspends, doesn't end
+- **Preserved context**: All variables, data, and state remain intact
+- **Clean handoff**: Server orchestrates, client participates
+
+## Core concepts
+
+### Graph-based workflows
+
+Workflows are directed graphs of nodes and edges - just like N8N or Make.com:
+
+```json
+{
+  "nodes": [
+    { "id": "1", "type": "start" },
+    { "id": "2", "type": "ai-agent", "data": { ... } },
+    { "id": "3", "type": "human-approval", "data": { ... } }
+  ],
+  "edges": [
+    { "source": "1", "target": "2" },
+    { "source": "2", "target": "3" }
+  ]
+}
+```
+
+### Hybrid execution (the "hot potato" model)
+
+This is the key innovation. Execution bounces between server and client:
+
+1. Server executes nodes that need backend resources (APIs, database)
+2. When a client-side node is reached, execution **suspends**
+3. Client SDK receives the workflow state
+4. User interacts, provides input
+5. Client calls resume endpoint with the data
+6. Server picks up where it left off
+
+No webhooks. No correlation IDs. No state reconstruction. Just pause and resume.
+
+### Stateful and resumable
+
+Every step is persisted to the database. This means:
+- Workflows can pause for seconds, hours, or days
+- If the server crashes, workflow state is intact
+- You can inspect execution history at any point
+- Re-running a completed step returns cached results (idempotency)
 
 ## Architecture
 

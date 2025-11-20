@@ -6,6 +6,8 @@ export default {
         './components/**/*.{ts,tsx}',
         './app/**/*.{ts,tsx}',
         './src/**/*.{ts,tsx}',
+        // Include UI package for node components
+        '../../packages/ui/src/**/*.{ts,tsx}',
     ],
     theme: {
         extend: {},

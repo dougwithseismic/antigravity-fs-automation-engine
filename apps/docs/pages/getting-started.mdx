@@ -1,12 +1,12 @@
 # Getting Started
 
-Follow this guide to set up Antigravity on your local machine.
+Set up Antigravity locally to explore the hybrid execution model.
 
 ## Prerequisites
 
-- **Node.js**: Version 18 or higher.
-- **pnpm**: We use pnpm for package management.
-- **Docker**: Required for running the local Supabase instance.
+- **Node.js**: Version 20 or higher
+- **pnpm**: Version 9 or higher
+- **Docker**: For running Postgres
 
 ## Installation
 
@@ -21,28 +21,56 @@ Follow this guide to set up Antigravity on your local machine.
     pnpm install
     ```
 
-3.  **Initialize Supabase**:
+3.  **Set up environment**:
     ```bash
-    pnpm exec supabase start
+    cp .env.example .env
+    # Edit .env with your database credentials
+    ```
+
+4.  **Start the database**:
+    ```bash
+    docker-compose up -d db
     ```
 
 ## Running the Application
 
-Start the development server for all apps:
+Start everything in development mode:
 
 ```bash
 pnpm dev
 ```
 
-This will start:
-- **Web App**: [http://localhost:3000](http://localhost:3000)
-- **Documentation**: [http://localhost:3001](http://localhost:3001)
-- **API Server**: [http://localhost:3002](http://localhost:3002)
+This starts:
+- **API Server**: [http://localhost:3002](http://localhost:3002) - Orchestration engine
+- **Web App**: [http://localhost:3000](http://localhost:3000) - Visual workflow editor
+- **Documentation**: [http://localhost:3001](http://localhost:3001) - What you're reading now
 
-## First Steps
+## Exploring the Component Library
 
-1.  Open the **Web App** at [http://localhost:3000](http://localhost:3000).
-2.  Click **"Create Workflow"** to start a new automation canvas.
-3.  Drag a **"Trigger"** node onto the canvas.
-4.  Connect it to an **"Action"** node (e.g., `console.log`).
-5.  Click **"Execute"** to run your first workflow in the browser!
+To see all workflow nodes and UI components in Storybook:
+
+```bash
+cd packages/ui
+pnpm storybook
+```
+
+This opens an interactive component explorer where you can:
+- Browse all available workflow nodes
+- Test components in isolation
+- Understand the visual language
+- See code examples
+
+## First Workflow
+
+1.  Open the **Web App** at [http://localhost:3000](http://localhost:3000)
+2.  Create a new workflow
+3.  Add nodes from the sidebar (try the "AI Agent Workflow" template)
+4.  Connect nodes to define the flow
+5.  Execute and watch it pause/resume for human input
+
+## What to explore next
+
+- **[Engine Concepts](/engine)**: How the orchestration works
+- **[Client SDK](/client-sdk)**: Integrating workflows in your app
+- **[React SDK](/react-sdk)**: React hooks for workflow state
+- **[Building Nodes](/building-nodes)**: Creating custom workflow nodes

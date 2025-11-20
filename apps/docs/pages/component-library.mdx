@@ -1,0 +1,67 @@
+# Component Library
+
+The `packages/ui` library contains Antigravity's visual workflow language - every node, primitive, and UI component that makes up the system.
+
+This isn't just documentation. It's the actual executable components that run in both the visual editor and at runtime.
+
+## Why Storybook?
+
+Most workflow platforms document their nodes in static docs that quickly go out of sync with reality. Antigravity takes a different approach:
+
+- **Every component is isolated**: Test nodes individually without running a full workflow
+- **Interactive examples**: See how nodes behave with different inputs
+- **Living documentation**: Components update, documentation updates automatically
+- **Component-driven development**: Build and test nodes before integrating them
+
+## Exploring the library
+
+Start Storybook to browse all available components:
+
+```bash
+cd packages/ui
+pnpm storybook
+```
+
+This opens at `http://localhost:6006` with:
+
+### Flow Primitives
+
+Core building blocks for workflow logic:
+- **Conditionals**: Branch based on data
+- **Loops**: Iterate over arrays
+- **Data transforms**: Map, filter, reduce operations
+- **Error handlers**: Try/catch for workflow steps
+
+### Workflow Nodes
+
+Pre-built nodes for common patterns:
+- **AI Agent**: LLM integration with confidence scoring
+- **Human Approval**: Pause for user review and decision
+- **Form Input**: Capture structured data from users
+- **Analytics**: Track events and metrics
+- **Email**: Send messages via SMTP or API
+- **HTTP Request**: Call external APIs
+
+### Interactive Elements
+
+Client-side UI components that live inside workflows:
+- **Banner Forms**: Inline input collection
+- **Modal Dialogs**: Focused user interactions
+- **Progress Indicators**: Show workflow execution state
+- **Approval Widgets**: Review and approve/reject flows
+
+## Building custom nodes
+
+All nodes are just React components with a specific interface. See [Building Nodes](/building-nodes) for details on creating your own.
+
+The key idea: if it works in Storybook, it works in the editor and at runtime. Same component, same behavior, everywhere.
+
+## Component development workflow
+
+1. **Create component** in `packages/ui/src/flow/nodes/`
+2. **Add Storybook story** in the same directory
+3. **Test in isolation** using Storybook controls
+4. **Register node type** in the engine
+5. **Use in workflows** via the visual editor
+
+This ensures every node is documented, testable, and reusable before it ever appears in a workflow.

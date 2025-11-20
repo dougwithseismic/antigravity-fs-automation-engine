@@ -1,14 +1,14 @@
 {
     "index": "Introduction",
-    "examples": "Examples",
-    "engine": "Antigravity Engine",
+    "getting-started": "Getting Started",
+    "engine": "The Engine",
+    "component-library": "Component Library",
     "nodes": "Standard Nodes",
     "building-nodes": "Building Nodes",
-    "database": "Database & Seeding",
     "client-sdk": "Client SDK",
     "react-sdk": "React SDK",
+    "database": "Database",
     "deployment": "Deployment",
     "guides": "Guides",
-    "about": "About",
-    "contact": "Contact"
+    "examples": "Examples"
 }
