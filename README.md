@@ -87,6 +87,27 @@ Antigravity is built as a monorepo using [Turbo](https://turbo.build/):
 
 We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md) (coming soon) for details.
 
+## Production Readiness 🚀
+
+We're currently in the process of hardening Antigravity for production. Check out these resources:
+
+- **[PRODUCTION_READINESS.md](./PRODUCTION_READINESS.md)** - Comprehensive review of what needs to be done
+- **[PRODUCTION_HARDENING_GUIDE.md](./PRODUCTION_HARDENING_GUIDE.md)** - Educational guide explaining all concepts (DLQ, Prometheus, Redis Streams, etc.)
+
+**Current Status**: Beta-ready (5/10) → Production-ready in 4-6 weeks
+
+**Key Focus Areas**:
+1. **Week 1**: Observability (Structured Logging, Prometheus Metrics, Dashboards)
+2. **Week 2**: Resilience (Dead Letter Queue, Circuit Breakers, Error Handling)
+3. **Week 3**: Real-time UX (Server-Sent Events for client communication)
+4. **Week 4**: Operations (Health Checks, State Hardening, Security)
+
+### 🔧 In Progress
+
+**Current Work**: Worker hardening and node reliability improvements
+- Fixing queue instance management (performance optimization)
+- Adding node-specific retry configurations (better error handling)
+
 ### Running Tests
 
 ```bash
