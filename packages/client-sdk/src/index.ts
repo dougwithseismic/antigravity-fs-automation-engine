@@ -59,6 +59,52 @@ export class ClientEngine {
         return result;
     }
 
+    /**
+     * Enable automatic route change detection for workflows with RouteChangeNodes
+     * This will monitor browser navigation and trigger matching workflows
+     */
+    enableRouteChangeDetection() {
+        // Track current path
+        let currentPath = window.location.pathname;
+
+        // Listen for popstate (back/forward button)
+        window.addEventListener('popstate', () => {
+            this.handleRouteChange(window.location.pathname);
+        });
+
+        // Intercept pushState and replaceState
+        const originalPushState = history.pushState;
+        const originalReplaceState = history.replaceState;
+
+        history.pushState = (...args) => {
+            originalPushState.apply(history, args);
+            this.handleRouteChange(window.location.pathname);
+        };
+
+        history.replaceState = (...args) => {
+            originalReplaceState.apply(history, args);
+            this.handleRouteChange(window.location.pathname);
+        };
+
+        console.log('[ClientSDK] Route change detection enabled');
+    }
+
+    private handleRouteChange(newPath: string) {
+        const url = new URL(window.location.href);
+
+        const navigationData = {
+            path: newPath,
+            query: Object.fromEntries(url.searchParams),
+            hash: url.hash,
+            params: {} // Would need a router to extract params
+        };
+
+        console.log('[ClientSDK] Route changed to:', newPath, navigationData);
+
+        // TODO: Check if any active workflows have RouteChangeNodes that match this path
+        // For now, this provides the infrastructure for manual triggering
+    }
+
     private async callApi(method: string, path: string, body: any) {
         const headers: Record<string, string> = {
             'Content-Type': 'application/json'

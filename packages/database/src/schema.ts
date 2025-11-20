@@ -5,6 +5,7 @@ export const executionStatusEnum = pgEnum('execution_status', [
     'running',
     'paused',
     'suspended',
+    'waiting',
     'completed',
     'failed',
     'cancelled'
@@ -13,6 +14,7 @@ export const executionStatusEnum = pgEnum('execution_status', [
 export const stepStatusEnum = pgEnum('step_status', [
     'pending',
     'running',
+    'suspended',
     'completed',
     'failed',
     'skipped'

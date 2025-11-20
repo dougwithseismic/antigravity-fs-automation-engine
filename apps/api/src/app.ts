@@ -5,10 +5,21 @@ import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { config } from "./config";
 import workflows from "./routes/workflows";
-import execution from "./routes/execution";
+import executions from "./routes/executions";
+import webhooks from "./routes/webhooks";
 import { authMiddleware } from "./middleware/auth";
 
-export const app = new OpenAPIHono();
+export const app = new OpenAPIHono({
+    defaultHook: (result, c) => {
+        if (!result.success) {
+            console.error("Validation Error:", result.error);
+            return c.json({
+                error: "Validation failed",
+                details: result.error
+            }, 400);
+        }
+    }
+});
 
 app.use("*", logger());
 app.use(
@@ -28,7 +39,8 @@ app.use(
 
 app.onError((err, c) => {
     console.error("Global Error:", err);
-    return c.json({ error: err.message, stack: err.stack }, 500);
+    console.error("Error Stack:", err.stack);
+    return c.json({ error: err.message || "Internal Server Error", stack: process.env.NODE_ENV !== "production" ? err.stack : undefined }, 500);
 });
 
 app.get("/", (c) => {
@@ -37,18 +49,42 @@ app.get("/", (c) => {
 
 // Apply auth middleware to sensitive routes
 app.use("/workflows/*", authMiddleware);
+app.use("/executions/*", authMiddleware);
 
+// IMPORTANT: For OpenAPI to work properly with sub-routes,
+// we need to mount them before calling app.doc()
+// The sub-apps must be OpenAPIHono instances
 app.route("/workflows", workflows);
-app.route("/workflows", execution); // Mounts at /workflows/:id/execute
+app.route("/executions", executions);
+app.route("/webhooks", webhooks);
 
+// Generate OpenAPI documentation
 app.doc("/doc", {
     openapi: "3.0.0",
     info: {
         version: "1.0.0",
-        title: "n8n Clone API",
+        title: "Antigravity API",
+        description: "Workflow automation API with execution monitoring"
     },
+    servers: [
+        {
+            url: `http://localhost:${config.port}`,
+            description: "Development server"
+        }
+    ],
+    tags: [
+        {
+            name: "workflows",
+            description: "Workflow management endpoints"
+        },
+        {
+            name: "executions",
+            description: "Execution monitoring endpoints"
+        }
+    ]
 });
 
+// Scalar API reference UI
 app.get(
     "/reference",
     apiReference({

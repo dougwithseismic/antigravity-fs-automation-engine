@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { WorkflowList } from './components/WorkflowList';
-import { WorkflowExecution } from './components/WorkflowExecution';
+import { GenericWorkflowExecution } from './components/GenericWorkflowExecution';
 import './App.css';
 
 function App() {
@@ -9,7 +9,7 @@ function App() {
     return (
         <div className="app-container">
             {selectedWorkflowId ? (
-                <WorkflowExecution
+                <GenericWorkflowExecution
                     workflowId={selectedWorkflowId}
                     onBack={() => setSelectedWorkflowId(null)}
                 />

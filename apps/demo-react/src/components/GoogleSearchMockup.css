@@ -1,0 +1,242 @@
+.google-mockup {
+    background: #fff;
+    min-height: 100vh;
+    font-family: arial, sans-serif;
+}
+
+/* Google Header */
+.google-header {
+    padding: 20px 20px 0;
+    border-bottom: 1px solid #ebebeb;
+}
+
+.google-logo {
+    font-size: 32px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.g-blue { color: #4285f4; }
+.g-red { color: #ea4335; }
+.g-yellow { color: #fbbc04; }
+.g-green { color: #34a853; }
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    max-width: 584px;
+    margin-bottom: 20px;
+    border: 1px solid #dfe1e5;
+    border-radius: 24px;
+    padding: 10px 15px;
+    box-shadow: 0 1px 6px rgba(32, 33, 36, 0.1);
+}
+
+.search-bar input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    color: #202124;
+}
+
+.search-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+}
+
+/* Search Results */
+.search-results {
+    max-width: 652px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.results-section {
+    margin-bottom: 30px;
+}
+
+.section-header {
+    font-size: 14px;
+    color: #70757a;
+    margin-bottom: 12px;
+    font-weight: 500;
+}
+
+/* Ad Results */
+.ad-result,
+.organic-result {
+    margin-bottom: 24px;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.ad-result:hover,
+.organic-result:hover {
+    background: #f8f9fa;
+}
+
+.ad-badge {
+    display: inline-block;
+    border: 1px solid #202124;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: #202124;
+}
+
+.ad-badge.small {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 10px;
+    padding: 1px 4px;
+}
+
+.result-url {
+    color: #202124;
+    font-size: 14px;
+    line-height: 20px;
+    margin-bottom: 2px;
+}
+
+.result-title {
+    color: #1a0dab;
+    font-size: 20px;
+    line-height: 26px;
+    font-weight: 400;
+    margin-bottom: 4px;
+}
+
+.result-title:hover {
+    text-decoration: underline;
+}
+
+.result-description {
+    color: #4d5156;
+    font-size: 14px;
+    line-height: 22px;
+}
+
+/* Shopping Results */
+.shopping-section {
+    background: #f8f9fa;
+    padding: 16px;
+    border-radius: 8px;
+}
+
+.shopping-results {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.shopping-card {
+    background: white;
+    border: 1px solid #dadce0;
+    border-radius: 8px;
+    padding: 12px;
+    cursor: pointer;
+    transition: box-shadow 0.2s;
+    position: relative;
+}
+
+.shopping-card:hover {
+    box-shadow: 0 1px 6px rgba(32, 33, 36, 0.28);
+}
+
+.product-image {
+    font-size: 64px;
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.product-info {
+    text-align: center;
+}
+
+.product-price {
+    font-size: 18px;
+    font-weight: 500;
+    color: #202124;
+    margin-bottom: 4px;
+}
+
+.product-name {
+    font-size: 13px;
+    color: #202124;
+    margin-bottom: 2px;
+}
+
+.product-store {
+    font-size: 12px;
+    color: #70757a;
+}
+
+/* UTM Preview */
+.utm-preview {
+    margin-top: 8px;
+    padding: 8px;
+    background: #e8f0fe;
+    border-radius: 4px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 11px;
+}
+
+.utm-tag {
+    background: #1a73e8;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+}
+
+/* Helper Text */
+.helper-text {
+    margin-top: 40px;
+    padding: 16px;
+    background: #fff9e6;
+    border-left: 4px solid #fbbc04;
+    border-radius: 4px;
+    display: flex;
+    gap: 12px;
+}
+
+.helper-icon {
+    font-size: 24px;
+}
+
+.helper-content {
+    flex: 1;
+    font-size: 14px;
+    color: #202124;
+}
+
+.helper-content strong {
+    font-weight: 600;
+}
+
+.helper-content ul {
+    margin: 8px 0 0 20px;
+    padding: 0;
+}
+
+.helper-content li {
+    margin: 4px 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .shopping-results {
+        grid-template-columns: 1fr;
+    }
+}

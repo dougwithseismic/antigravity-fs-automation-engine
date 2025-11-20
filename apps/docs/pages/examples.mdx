@@ -1,16 +1,17 @@
+---
+title: Workflow Examples
+description: Real-world workflow examples using Antigravity
+---
+
 # Workflow Examples
 
-Antigravity is flexible enough to handle various types of workflows. Here are a few common patterns.
+## 1. Server-Only Workflow (API Integration)
 
-## 1. Server-Only Workflow (Backend Automation)
-
-This is a traditional workflow that runs entirely on the server without user intervention.
-
-**Use Case**: Data processing, nightly jobs, webhook handling.
+**Use Case**: Scheduled data sync from external API to database.
 
 ```mermaid
 graph LR
-    A[Start] --> B[Fetch Data]
+    A[Start] --> B[Fetch API Data]
     B --> C{Condition}
     C -- Yes --> D[Update DB]
     C -- No --> E[Log Skip]

@@ -1,0 +1,291 @@
+/* Generic Client Node Widgets */
+.client-nodes-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.5rem;
+    height: 100%;
+    justify-content: center;
+}
+
+.client-node-widget {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.widget-header {
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.widget-header.alert {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.widget-header-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.widget-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
+}
+
+.widget-icon {
+    font-size: 1.5rem;
+}
+
+.widget-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.step-badge {
+    font-size: 0.75rem;
+    opacity: 0.9;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+}
+
+.widget-message {
+    font-size: 1rem;
+    color: #555;
+    margin: 0 0 1rem 0;
+    line-height: 1.5;
+}
+
+.widget-body {
+    padding: 1.5rem;
+}
+
+/* Form Inputs */
+.input-field {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.input-field:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+/* Buttons */
+.submit-button {
+    width: 100%;
+    padding: 0.875rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.submit-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.submit-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.submit-button.success {
+    background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+}
+
+.submit-button.primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Alert Widget */
+.alert-message {
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    font-size: 1.05rem;
+    text-align: center;
+    color: #333;
+}
+
+/* Default Widget */
+.default-widget .node-data {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.default-widget pre {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+/* Processing State */
+.processing-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 2rem;
+    text-align: center;
+    animation: fadeIn 0.2s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.spinner {
+    font-size: 3rem;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.processing-state p {
+    margin-top: 1rem;
+    color: #666;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+/* Idle State */
+.idle-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 2rem;
+    text-align: center;
+}
+
+.idle-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.idle-state p {
+    color: #999;
+    font-size: 1rem;
+}
+
+/* Server Output Display */
+.server-output-display {
+    margin-top: 2rem;
+    width: 100%;
+}
+
+.output-section {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.output-section h4 {
+    margin: 0 0 0.75rem 0;
+    font-size: 0.9rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.discount-card {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.discount-code {
+    font-size: 1.5rem;
+    font-weight: bold;
+    font-family: monospace;
+    letter-spacing: 2px;
+    margin-bottom: 0.5rem;
+}
+
+.discount-details {
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
+.analytics-event {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+}
+
+.event-name {
+    font-weight: 500;
+}
+
+.event-time {
+    color: #999;
+    font-size: 0.85rem;
+}
+
+.email-sent {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+}
+
+.email-template {
+    font-size: 0.85rem;
+    color: #999;
+    font-family: monospace;
+}

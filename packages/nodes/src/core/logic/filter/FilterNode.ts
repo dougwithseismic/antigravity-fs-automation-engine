@@ -50,7 +50,10 @@ export class FilterNode implements AntigravityNode {
             status: 'success',
             output: {
                 match,
-                data: match ? data : null
+                field,
+                operator,
+                fieldValue,
+                expectedValue: value
             }
         };
     }

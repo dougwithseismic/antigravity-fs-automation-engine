@@ -1,0 +1,119 @@
+.execution-timeline {
+    margin: 20px 0;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.execution-timeline h3 {
+    margin: 0 0 16px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #212529;
+}
+
+.timeline-item {
+    display: flex;
+    gap: 15px;
+    padding: 12px 0;
+    border-left: 2px solid #dee2e6;
+    margin-left: 10px;
+    position: relative;
+}
+
+.timeline-item:last-child {
+    border-left: 2px solid transparent;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -11px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border: 2px solid #dee2e6;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+}
+
+.status-completed .timeline-marker {
+    border-color: #28a745;
+    background: #d4edda;
+}
+
+.status-running .timeline-marker {
+    border-color: #17a2b8;
+    background: #d1ecf1;
+}
+
+.status-suspended .timeline-marker {
+    border-color: #ffc107;
+    background: #fff3cd;
+}
+
+.status-failed .timeline-marker {
+    border-color: #dc3545;
+    background: #f8d7da;
+}
+
+.status-pending .timeline-marker {
+    border-color: #6c757d;
+    background: #e9ecef;
+}
+
+.timeline-content {
+    flex: 1;
+    padding-left: 20px;
+}
+
+.node-info {
+    font-weight: 600;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.node-type {
+    background: #e9ecef;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    margin-right: 8px;
+    color: #495057;
+    font-family: 'Monaco', 'Courier New', monospace;
+}
+
+.node-name {
+    color: #212529;
+    font-size: 14px;
+}
+
+.timing-info {
+    font-size: 12px;
+    color: #6c757d;
+    display: flex;
+    gap: 12px;
+}
+
+.duration {
+    font-weight: 500;
+    color: #495057;
+}
+
+.timestamp {
+    color: #868e96;
+}
+
+.error-info {
+    margin-top: 8px;
+    padding: 8px;
+    background: #f8d7da;
+    border-left: 3px solid #dc3545;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #721c24;
+}

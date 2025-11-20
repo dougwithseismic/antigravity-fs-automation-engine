@@ -4,14 +4,21 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "dev:system": "concurrently -n \"API,Worker,Demo\" -c \"blue,green,yellow\" \"pnpm --filter api dev\" \"pnpm --filter @antigravity/worker dev\" \"pnpm --filter demo-react dev\"",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
     "test": "turbo run test",
     "db:reset": "pnpm --filter @repo/database db:reset",
-    "db:seed": "pnpm --filter @repo/database db:seed"
+    "db:seed": "pnpm --filter @repo/database db:seed",
+    "antigravity:start": "pnpm --filter @antigravity/vscode-interceptor start",
+    "antigravity:stop": "pnpm --filter @antigravity/vscode-interceptor stop",
+    "patch-vscode": "pnpm --filter @antigravity/vscode-interceptor patch-vscode",
+    "unpatch-vscode": "pnpm --filter @antigravity/vscode-interceptor unpatch-vscode",
+    "view-logs": "pnpm --filter @antigravity/vscode-interceptor view-logs"
   },
   "devDependencies": {
+    "concurrently": "^9.2.1",
     "prettier": "^3.6.2",
     "supabase": "^2.58.5",
     "tsx": "^4.0.0",
@@ -30,5 +37,9 @@
       "@types/react-dom": "19.2.2",
       "@headlessui/react": "^2.0.0"
     }
+  },
+  "dependencies": {
+    "pino": "^10.1.0",
+    "pino-pretty": "^13.1.2"
   }
 }

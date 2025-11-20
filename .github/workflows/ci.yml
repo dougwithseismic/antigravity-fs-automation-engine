@@ -67,9 +67,18 @@ jobs:
       - name: Type Check
         run: pnpm check-types
 
+      - name: Check for uncommitted migrations
+        run: |
+          pnpm --filter @repo/database db:generate
+          if ! git diff --exit-code packages/database/drizzle/; then
+            echo "❌ Schema changes detected without migrations!"
+            echo "Run 'pnpm db:generate' and commit the generated migrations"
+            exit 1
+          fi
+
       - name: Setup Database
         run: |
-          pnpm db:reset
+          pnpm --filter @repo/database db:migrate
           pnpm db:seed
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/antigravity

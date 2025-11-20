@@ -1,0 +1,301 @@
+---
+title: Trigger Nodes
+description: Learn how to use trigger nodes to initiate workflows from external events and user navigation
+---
+
+# Trigger Nodes
+
+Trigger nodes are special nodes that serve as entry points for workflows. Unlike regular nodes that are executed as part of a workflow, trigger nodes define **when** a workflow should start executing.
+
+## Overview
+
+Antigravity supports two types of trigger nodes:
+
+1. **WebhookNode (Backend)** - Triggers workflows via HTTP requests
+2. **RouteChangeNode (Client-side)** - Triggers workflows when users navigate to specific URLs
+
+## WebhookNode
+
+The `WebhookNode` allows you to trigger workflows via HTTP webhooks, enabling integration with external systems like Stripe, GitHub, or custom applications.
+
+### Configuration
+
+```typescript
+{
+  id: '1',
+  type: 'webhook',
+  data: {
+    method: 'POST' // Optional: GET, POST, PUT, etc.
+  }
+}
+```
+
+### API Endpoint
+
+Once a workflow contains a `WebhookNode`, you can trigger it by sending an HTTP request to:
+
+```
+POST /webhooks/:workflowId
+```
+
+Where `:workflowId` is the ID of the workflow containing the webhook trigger.
+
+### Output
+
+The WebhookNode outputs all request data:
+
+```typescript
+{
+  body: {},        // Request body (parsed JSON)
+  query: {},       // Query parameters
+  headers: {},     // Request headers
+  method: 'POST',  // HTTP method
+  path: '/webhooks/123' // Request path
+}
+```
+
+### Example Workflow
+
+```json
+{
+  "name": "Process Stripe Payment",
+  "nodes": [
+    {
+      "id": "1",
+      "type": "webhook",
+      "data": {}
+    },
+    {
+      "id": "2",
+      "type": "email",
+      "data": {
+        "to": "admin@example.com",
+        "subject": "New Payment",
+        "body": "Payment received: {{1.body.amount}}"
+      }
+    }
+  ],
+  "edges": [
+    { "source": "1", "target": "2" }
+  ]
+}
+```
+
+### Triggering the Webhook
+
+```bash
+# Using curl
+curl -X POST http://localhost:3001/webhooks/1 \
+  -H "Content-Type: application/json" \
+  -d '{"amount": 50.00, "currency": "USD"}'
+
+# Using JavaScript
+fetch('http://localhost:3001/webhooks/1', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ amount: 50.00, currency: 'USD' })
+});
+```
+
+### Use Cases
+
+- **Payment Processing**: Stripe webhook integration
+- **Git Events**: GitHub push/PR webhooks
+- **Form Submissions**: External form submissions
+- **API Integrations**: Third-party service notifications
+- **IoT Events**: Device status updates
+
+---
+
+## RouteChangeNode
+
+The `RouteChangeNode` triggers workflows automatically when users navigate to specific URL patterns in your web application.
+
+### Configuration
+
+```typescript
+{
+  id: '1',
+  type: 'route-change',
+  data: {
+    pathPattern: '/products/*' // URL pattern to match
+  }
+}
+```
+
+### Pattern Matching
+
+The `RouteChangeNode` supports wildcard patterns:
+
+- `/products` - Exact match
+- `/products/*` - Matches `/products/123`, `/products/abc`, etc.
+- `/*` - Matches any route
+
+### Output
+
+The RouteChangeNode outputs navigation data:
+
+```typescript
+{
+  path: '/products/123',     // Current path
+  params: { id: '123' },      // Route parameters (requires router)
+  query: { ref: 'homepage' }, // Query parameters
+  hash: '#reviews'            // Hash fragment
+}
+```
+
+### Client SDK Integration
+
+The Client SDK automatically detects route changes when using the `AntigravityProvider`:
+
+```tsx
+import { AntigravityProvider } from '@antigravity/client-sdk/react';
+
+function App() {
+  return (
+    <AntigravityProvider apiUrl="http://localhost:3001" apiKey={API_KEY}>
+      <YourApp />
+    </AntigravityProvider>
+  );
+}
+```
+
+Route detection is automatically enabled and monitors:
+- Browser back/forward buttons (`popstate`)
+- Programmatic navigation (`pushState`, `replaceState`)
+- All modern routing libraries (React Router, Next.js, etc.)
+
+### Example Workflow
+
+```json
+{
+  "name": "Product Page Analytics",
+  "nodes": [
+    {
+      "id": "1",
+      "type": "route-change",
+      "data": {
+        "pathPattern": "/products/*"
+      }
+    },
+    {
+      "id": "2",
+      "type": "analytics",
+      "data": {
+        "event": "page_view",
+        "properties": {
+          "path": "{{1.path}}",
+          "product_id": "{{1.params.id}}"
+        }
+      }
+    }
+  ],
+  "edges": [
+    { "source": "1", "target": "2" }
+  ]
+}
+```
+
+### Use Cases
+
+- **Page View Tracking**: Track specific page visits
+- **Contextual Onboarding**: Show help based on current page
+- **URL-based Personalization**: Display content based on route
+- **Feature Flags**: Enable/disable features per route
+- **A/B Testing**: Route-specific experiments
+
+---
+
+## Combining Triggers
+
+You can create workflows with multiple trigger types by using separate workflows or conditional logic:
+
+### Multiple Workflows Approach
+
+```typescript
+// Workflow 1: Webhook trigger
+{
+  nodes: [
+    { id: '1', type: 'webhook', data: {} },
+    // ... rest of workflow
+  ]
+}
+
+// Workflow 2: Route change trigger
+{
+  nodes: [
+    { id: '1', type: 'route-change', data: { pathPattern: '/checkout' } },
+    // ... rest of workflow
+  ]
+}
+```
+
+---
+
+## Best Practices
+
+### WebhookNode
+
+1. **Validate Input**: Always validate webhook data before processing
+2. **Idempotency**: Handle duplicate webhook calls gracefully
+3. **Security**: Use API keys and validate webhook signatures (future feature)
+4. **Error Handling**: Implement proper error handling for failed webhooks
+5. **Logging**: Log all webhook events for debugging
+
+### RouteChangeNode
+
+1. **Specific Patterns**: Use specific patterns to avoid over-triggering
+2. **Performance**: Keep workflows lightweight for better UX
+3. **Pattern Testing**: Test patterns thoroughly before production
+4. **User Privacy**: Respect user privacy when tracking navigation
+5. **Analytics**: Combine with analytics nodes for insights
+
+---
+
+## API Reference
+
+### WebhookNode
+
+| Property | Type | Description | Default |
+|----------|------|-------------|---------|
+| `method` | `string` | HTTP method filter | `'POST'` |
+
+### RouteChangeNode
+
+| Property | Type | Description | Default |
+|----------|------|-------------|---------|
+| `pathPattern` | `string` | URL pattern to match | `'/'` |
+
+---
+
+## Testing
+
+### Unit Tests
+
+Both trigger nodes have comprehensive unit test coverage:
+
+```bash
+# Test WebhookNode
+pnpm test -- WebhookNode
+
+# Test RouteChangeNode
+pnpm test -- RouteChangeNode
+```
+
+### Integration Tests
+
+```bash
+# Test webhook triggering
+pnpm --filter @antigravity/worker test -- webhook-trigger
+
+# Test webhook edge cases
+pnpm --filter @antigravity/worker test -- webhook-edge-cases
+```
+
+---
+
+## Next Steps
+
+- Learn about [Node Types](/nodes) for processing trigger data
+- Explore [Client SDK](/client-sdk) for frontend integration
+- Check out [API Reference](/api) for webhook endpoints

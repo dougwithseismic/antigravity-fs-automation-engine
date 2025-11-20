@@ -12,13 +12,16 @@
   "dependencies": {
     "@antigravity/client-sdk": "workspace:*",
     "@radix-ui/react-slot": "^1.2.4",
+    "@tailwindcss/postcss": "^4.1.17",
+    "@tailwindcss/vite": "^4.1.17",
+    "@xyflow/react": "^12.9.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.24",
+    "lucide-react": "^0.554.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-resizable-panels": "^3.0.6",
-    "reactflow": "^11.11.4",
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {

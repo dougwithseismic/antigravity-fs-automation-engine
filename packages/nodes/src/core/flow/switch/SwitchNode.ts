@@ -12,9 +12,6 @@ export class SwitchNode implements AntigravityNode {
         const rules = input.rules || node.data?.rules || [];
         const fallback = input.fallback || node.data?.fallback || false;
 
-        // Merge input and node.data for value evaluation
-        const data = { ...node.data, ...input };
-
         // Rules structure: [{ condition: '==', value: 'foo', variable: 'bar' }]
         // For simplicity in this iteration, we'll assume rules return an index
 
@@ -26,8 +23,8 @@ export class SwitchNode implements AntigravityNode {
                 return {
                     status: 'success',
                     output: {
-                        ...data,
-                        _routeIndex: i // Temporary way to signal route
+                        routeIndex: i,
+                        matchedRule: rule
                     }
                 };
             }
@@ -36,14 +33,19 @@ export class SwitchNode implements AntigravityNode {
         if (fallback) {
             return {
                 status: 'success',
-                output: data,
-                // Route to fallback
+                output: {
+                    routeIndex: -1,
+                    fallback: true
+                }
             };
         }
 
         return {
             status: 'success',
-            output: data
+            output: {
+                routeIndex: null,
+                noMatch: true
+            }
         };
     }
 }

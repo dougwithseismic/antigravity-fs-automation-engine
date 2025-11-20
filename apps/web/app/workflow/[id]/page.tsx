@@ -1,13 +1,16 @@
 "use client";
-import { useState, useEffect, useCallback, use } from "react";
-import Link from "next/link";
-import { WorkflowCanvas } from "../../../components/workflow/canvas";
-import { Sidebar } from "../../../components/workflow/sidebar";
-import { useNodesState, useEdgesState, addEdge, type Node, type Edge } from '@xyflow/react';
 
-export default function WorkflowEditorPage({ params }: { params: Promise<{ id: string }> }): React.ReactNode {
-    const { id } = use(params);
-    const [selectedNode, setSelectedNode] = useState<any>(null);
+import { useState, useEffect, useCallback, use } from "react";
+import { ReactFlowProvider, useNodesState, useEdgesState, addEdge, type Node, type Edge } from '@xyflow/react';
+import { WorkflowSidebar } from "@/components/workflow/workflow-sidebar";
+import { WorkflowCanvas } from "@/components/workflow/workflow-canvas";
+import { WorkflowConfigPanel } from "@/components/workflow/workflow-config-panel";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Save, Play } from "lucide-react";
+
+function WorkflowEditorContent({ id }: { id: string }) {
+    const [selectedNode, setSelectedNode] = useState<Node | null>(null);
     const [workflowName, setWorkflowName] = useState("Loading...");
     const [isSaving, setIsSaving] = useState(false);
 
@@ -44,11 +47,11 @@ export default function WorkflowEditorPage({ params }: { params: Promise<{ id: s
         [setEdges],
     );
 
-    const handleNodeSelect = (node: any) => {
+    const handleNodeSelect = useCallback((node: Node | null) => {
         setSelectedNode(node);
-    };
+    }, []);
 
-    const handleUpdateNode = (nodeId: string, data: any) => {
+    const handleUpdateNode = useCallback((nodeId: string, data: any) => {
         setNodes((nds) =>
             nds.map((node) => {
                 if (node.id === nodeId) {
@@ -57,7 +60,7 @@ export default function WorkflowEditorPage({ params }: { params: Promise<{ id: s
                 return node;
             })
         );
-    };
+    }, [setNodes]);
 
     const handleSave = async () => {
         setIsSaving(true);
@@ -95,40 +98,70 @@ export default function WorkflowEditorPage({ params }: { params: Promise<{ id: s
     };
 
     return (
-        <div className="flex h-screen flex-col bg-slate-950 text-blue-100 font-sans selection:bg-blue-500/30">
-            <div className="p-4 border-b border-blue-900/50 flex justify-between items-center bg-slate-900/80 backdrop-blur-md z-20 shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
-                <div className="flex items-center gap-4">
-                    <Link href="/" className="text-blue-500 hover:text-blue-400 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7" /><path d="M19 12H5" /></svg>
-                    </Link>
-                    <h1 className="font-bold text-xl tracking-wider uppercase text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">{workflowName}</h1>
-                </div>
-                <div className="flex gap-3">
-                    <button
-                        onClick={handleSave}
-                        disabled={isSaving}
-                        className="bg-slate-800 hover:bg-slate-700 text-blue-200 px-6 py-2 rounded-full border border-blue-900/50 transition-all text-sm font-medium tracking-wide uppercase disabled:opacity-50"
-                    >
-                        {isSaving ? "Saving..." : "Save Protocol"}
-                    </button>
-                    <button onClick={handleExecute} className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-full border border-blue-400/50 shadow-[0_0_15px_rgba(59,130,246,0.5)] transition-all hover:shadow-[0_0_25px_rgba(59,130,246,0.8)] text-sm font-medium tracking-wide uppercase">
-                        Execute Protocol
-                    </button>
-                </div>
-            </div>
-            <div className="flex flex-1 relative overflow-hidden">
-                <div className="flex-1 relative z-10">
-                    <WorkflowCanvas
-                        nodes={nodes}
-                        edges={edges}
-                        onNodesChange={onNodesChange}
-                        onEdgesChange={onEdgesChange}
-                        onConnect={onConnect}
-                        onNodeSelect={handleNodeSelect}
+        <div className="h-screen flex bg-background">
+            {/* Icon Sidebar */}
+            <WorkflowSidebar />
+
+            {/* Main Content */}
+            <div className="flex-1 flex flex-col ml-14">
+                {/* Top Bar */}
+                <header className="h-14 border-b border-border/50 bg-card/50 backdrop-blur-sm flex items-center justify-between px-4 z-10">
+                    <Input
+                        value={workflowName}
+                        onChange={(e) => setWorkflowName(e.target.value)}
+                        className="max-w-xs bg-background/50 border-border/50 font-medium"
+                        placeholder="Workflow name"
+                    />
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleSave}
+                            disabled={isSaving}
+                            className="gap-2"
+                        >
+                            <Save className="h-4 w-4" />
+                            {isSaving ? "Saving..." : "Save"}
+                        </Button>
+                        <Button
+                            size="sm"
+                            onClick={handleExecute}
+                            className="gap-2 bg-primary hover:bg-primary/90"
+                        >
+                            <Play className="h-4 w-4" />
+                            Run
+                        </Button>
+                    </div>
+                </header>
+
+                {/* Canvas + Config Panel */}
+                <div className="flex-1 flex overflow-hidden">
+                    <div className="flex-1">
+                        <WorkflowCanvas
+                            nodes={nodes}
+                            edges={edges}
+                            onNodesChange={onNodesChange}
+                            onEdgesChange={onEdgesChange}
+                            onConnect={onConnect}
+                            onNodeSelect={handleNodeSelect}
+                        />
+                    </div>
+                    <WorkflowConfigPanel
+                        selectedNode={selectedNode}
+                        onUpdateNode={handleUpdateNode}
                     />
                 </div>
-                <Sidebar selectedNode={selectedNode} onUpdateNode={handleUpdateNode} />
             </div>
         </div>
+    );
+}
+
+export default function WorkflowEditorPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = use(params);
+
+    return (
+        <ReactFlowProvider>
+            <WorkflowEditorContent id={id} />
+        </ReactFlowProvider>
     );
 }

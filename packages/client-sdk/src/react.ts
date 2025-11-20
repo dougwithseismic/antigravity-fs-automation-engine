@@ -37,7 +37,14 @@ interface AntigravityContextType {
 const AntigravityContext = createContext<AntigravityContextType | null>(null);
 
 export const AntigravityProvider = ({ children, apiUrl, apiKey }: { children: React.ReactNode; apiUrl: string; apiKey?: string }) => {
-    const engine = React.useMemo(() => new ClientEngine(apiUrl, apiKey), [apiUrl, apiKey]);
+    const engine = React.useMemo(() => {
+        const eng = new ClientEngine(apiUrl, apiKey);
+        // Enable route change detection by default
+        if (typeof window !== 'undefined') {
+            eng.enableRouteChangeDetection();
+        }
+        return eng;
+    }, [apiUrl, apiKey]);
     const [activeNode, setActiveNode] = React.useState<{ nodeId: string; type: string; input: any } | null>(null);
     const resolverRef = useRef<NodeResolver | null>(null);
 

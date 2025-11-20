@@ -38,11 +38,23 @@ export interface NodeExecutionResult {
     error?: string;
 }
 
+export interface ExecutionStep {
+    nodeId: string;
+    nodeType: string;
+    status: 'pending' | 'running' | 'completed' | 'failed' | 'suspended';
+    output: Record<string, any>;
+    startedAt: string;
+    completedAt?: string;
+    duration?: number;
+    error?: { message: string; stack?: string };
+}
+
 export interface ExecutionContext {
     workflowId: number;
     executionId: number;
     input: any;
     results: Record<string, NodeExecutionResult>;
+    steps?: ExecutionStep[]; // NEW: Clean step-by-step execution history
 }
 
 export type NodeExecutionArgs = {

@@ -3,7 +3,9 @@ import { serve } from "@hono/node-server";
 import { client } from "@repo/database";
 import { config } from "./config";
 import { app } from "./app";
+import { createLogger } from "@repo/logger";
 
+const logger = createLogger({ name: 'api' });
 const port = config.port;
 
 const server = serve(
@@ -12,20 +14,26 @@ const server = serve(
         port,
     },
     (info) => {
-        console.log(`🚀 ${config.appName} server is running!`);
-        console.log(`   - Local:        http://localhost:${info.port}`);
-        console.log(`   - Documentation: http://localhost:${info.port}/reference`);
-        console.log(`   - OpenAPI Spec:  http://localhost:${info.port}/doc`);
+        logger.info({
+            appName: config.appName,
+            port: info.port,
+            urls: {
+                local: `http://localhost:${info.port}`,
+                docs: `http://localhost:${info.port}/reference`,
+                openapi: `http://localhost:${info.port}/doc`,
+            }
+        }, 'API server started successfully');
     },
 );
 
 const shutdown = async () => {
-    console.log("Shutting down...");
+    logger.info('Shutdown signal received');
     server.close();
     await client.end();
-    console.log("Server closed");
+    logger.info('Server closed gracefully');
     process.exit(0);
 };
 
 process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
+

@@ -1,18 +1,17 @@
 import { useEffect } from 'react';
-import ReactFlow, {
+import {
+    ReactFlow,
     type Node,
     type Edge,
     Background,
     Controls,
     useNodesState,
     useEdgesState,
-    type NodeTypes,
     MarkerType,
-    Handle,
-    Position,
-} from 'reactflow';
-import 'reactflow/dist/style.css';
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
 import './WorkflowGraph.css';
+import { nodeTypes } from './NodeTypes';
 
 interface WorkflowNode {
     id: string;
@@ -30,34 +29,6 @@ interface WorkflowGraphProps {
     onNodeHover?: (nodeId: string | null) => void;
     executedNodeIds?: Set<string>;
 }
-
-// Custom node component with hover details and connection handles
-function CustomNode({ data }: { data: any }) {
-    const isClientNode = data.environment === 'client';
-
-    return (
-        <div className="custom-node">
-            <Handle type="target" position={Position.Top} />
-            <div className="node-header">
-                <div className={`environment-badge ${isClientNode ? 'client-env' : 'server-env'}`}>
-                    {isClientNode ? '🖥️ Client' : '⚙️ Server'}
-                </div>
-            </div>
-            <div className="node-label">{data.label || data.type}</div>
-            {data.tooltip && (
-                <div className="node-tooltip">
-                    <div className="tooltip-content">{data.tooltip}</div>
-                </div>
-            )}
-            <Handle type="source" position={Position.Bottom} />
-        </div>
-    );
-}
-
-// Define nodeTypes outside component to avoid recreating on each render
-const nodeTypes: NodeTypes = {
-    custom: CustomNode,
-};
 
 export function WorkflowGraph({ nodes, edges, activeNodeId, hoveredNodeId, onNodeHover, executedNodeIds = new Set() }: WorkflowGraphProps) {
     // Helper function to build flow nodes
@@ -81,17 +52,12 @@ export function WorkflowGraph({ nodes, edges, activeNodeId, hoveredNodeId, onNod
                 isActive ? 'active-node' :
                     hasExecuted ? 'executed-node' : '';
 
-            console.log(`Node ${nodeId}: hasExecuted=${hasExecuted}, isActive=${isActive}, isPending=${isPending}, inferred=${inferredExecution}, class=${stateClass}`);
-
             return {
                 id: nodeId,
-                type: 'custom',
+                type: node.type || 'start', // Use actual node type
                 position: node.position || { x: 150, y: index * 120 },
                 data: {
                     label: node.data?.label || `Node ${nodeId}`,
-                    type: node.type,
-                    environment: node.environment,
-                    tooltip: `Type: ${node.type}\nID: ${nodeId}\nEnv: ${node.environment || 'server'}`,
                     ...node.data,
                 },
                 className: [stateClass, isHovered ? 'hovered-node' : ''].filter(Boolean).join(' '),
@@ -130,7 +96,6 @@ export function WorkflowGraph({ nodes, edges, activeNodeId, hoveredNodeId, onNod
 
     // Update nodes and edges when props change
     useEffect(() => {
-        console.log(`activeNodeId changed to: ${activeNodeId}, executedNodeIds: ${Array.from(executedNodeIds).join(', ')}`);
         setFlowNodes(buildFlowNodes());
         setFlowEdges(buildFlowEdges());
     }, [activeNodeId, hoveredNodeId, executedNodeIds, nodes, edges]);

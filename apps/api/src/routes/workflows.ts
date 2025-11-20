@@ -280,4 +280,73 @@ app.openapi(
     },
 );
 
+// Execute workflow
+app.openapi(
+    createRoute({
+        method: "post",
+        path: "/{id}/execute",
+        request: {
+            params: z.object({
+                id: z.string().transform((v) => Number(v)),
+            }),
+            body: {
+                content: {
+                    "application/json": {
+                        schema: z.object({
+                            input: z.any().optional(),
+                        }),
+                    },
+                },
+            },
+        },
+        responses: {
+            200: {
+                content: {
+                    "application/json": {
+                        schema: z.object({
+                            executionId: z.number(),
+                            status: z.string(),
+                        }),
+                    },
+                },
+                description: "Execution started",
+            },
+            404: {
+                content: {
+                    "application/json": {
+                        schema: ErrorSchema,
+                    },
+                },
+                description: "Workflow not found",
+            },
+        },
+    }),
+    async (c) => {
+        const id = Number(c.req.param("id"));
+        const body = await c.req.json().catch(() => ({})); // Optional body
+
+        console.log("Executing workflow", id);
+
+        // Verify workflow exists
+        const workflow = await db.query.workflows.findFirst({
+            where: eq(workflows.id, id),
+        });
+
+        if (!workflow) {
+            return c.json({ error: "Workflow not found" }, 404);
+        }
+
+        // Start execution via orchestrator
+        const { orchestrator } = await import("../execution/orchestrator");
+        // Accept input either as body.input (legacy) or as the whole body
+        const input = body.input !== undefined ? body.input : body;
+        const execution = await orchestrator.startWorkflow(id, input);
+
+        return c.json({
+            executionId: execution.id,
+            status: execution.status,
+        }, 200);
+    },
+);
+
 export default app;
