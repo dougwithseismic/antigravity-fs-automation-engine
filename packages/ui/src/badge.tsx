@@ -1,25 +1,23 @@
-import * as React from "react";
-import { cn } from "./lib/utils";
+import { cn } from '../../lib/utils';
 
-export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: "default" | "secondary" | "destructive" | "outline";
+interface BadgeProps {
+    variant?: 'default' | 'outline' | 'secondary';
+    className?: string;
+    children: React.ReactNode;
 }
 
-export function Badge({ className, variant = "default", ...props }: BadgeProps) {
-  return (
-    <div
-      className={cn(
-        "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-        variant === "default" &&
-          "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
-        variant === "secondary" &&
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        variant === "destructive" &&
-          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
-        variant === "outline" && "text-foreground",
-        className
-      )}
-      {...props}
-    />
-  );
+export function Badge({ variant = 'default', className, children }: BadgeProps) {
+    const baseStyles = 'inline-flex items-center rounded-md px-2 py-1 text-xs font-medium';
+
+    const variantStyles = {
+        default: 'bg-blue-500/10 text-blue-500 border border-blue-500/20',
+        outline: 'border border-gray-300 text-gray-700',
+        secondary: 'bg-gray-500/10 text-gray-500 border border-gray-500/20'
+    };
+
+    return (
+        <span className={cn(baseStyles, variantStyles[variant], className)}>
+            {children}
+        </span>
+    );
 }

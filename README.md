@@ -325,8 +325,6 @@ When you run `pnpm dev`, docs are at http://localhost:3001
 
 This is still early. I'm hardening it for production use, but it's not there yet.
 
-See [PRODUCTION_READINESS.md](./PRODUCTION_READINESS.md) for what needs to be done and [PRODUCTION_HARDENING_GUIDE.md](./PRODUCTION_HARDENING_GUIDE.md) for explanations of all the infrastructure concepts.
-
 Right now I'm working on:
 - Worker reliability and queue management
 - Node-specific retry configurations
