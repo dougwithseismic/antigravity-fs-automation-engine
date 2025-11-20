@@ -13,7 +13,14 @@ export const conditionalServerWorkflow = buildWorkflow({
             id: '1',
             type: 'start',
             position: { x: 250, y: 100 },
-            data: { label: 'Start' }
+            data: {
+                label: 'Start',
+                description: 'Customer workflow entry',
+                handles: [
+                    { id: '1-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '1-user', type: 'source', dataType: 'json', label: 'User' }
+                ]
+            }
         },
         {
             id: '2',
@@ -21,11 +28,18 @@ export const conditionalServerWorkflow = buildWorkflow({
             position: { x: 250, y: 200 },
             data: {
                 label: 'Check VIP Status',
+                description: 'Evaluate customer tier',
                 condition: {
                     key: 'user.vip',
                     operator: '==',
                     value: true
-                }
+                },
+                handles: [
+                    { id: '2-flow-in', type: 'target', dataType: 'flow', label: 'In' },
+                    { id: '2-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '2-value', type: 'target', dataType: 'json', label: 'Value' },
+                    { id: '2-result', type: 'source', dataType: 'boolean', label: 'Result' }
+                ]
             }
         },
         // True branch - VIP path
@@ -35,12 +49,20 @@ export const conditionalServerWorkflow = buildWorkflow({
             position: { x: 100, y: 300 },
             data: {
                 label: 'VIP: 30% Discount',
+                description: 'Generate premium discount',
                 resource: 'discount',
                 operation: 'create',
                 payload: `{
   "code": "VIP30",
   "percentage": 30
-}`
+}`,
+                handles: [
+                    { id: '3-flow-in', type: 'target', dataType: 'flow', label: 'In' },
+                    { id: '3-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '3-credential', type: 'target', dataType: 'string', label: 'Credential' },
+                    { id: '3-payload', type: 'target', dataType: 'json', label: 'Payload' },
+                    { id: '3-data', type: 'source', dataType: 'json', label: 'Response' }
+                ]
             }
         },
         {
@@ -49,8 +71,16 @@ export const conditionalServerWorkflow = buildWorkflow({
             position: { x: 100, y: 400 },
             data: {
                 label: 'VIP: Premium Email',
+                description: 'Send VIP offer email',
                 provider: 'klaviyo',
-                templateId: 'vip_offer'
+                templateId: 'vip_offer',
+                handles: [
+                    { id: '4-flow-in', type: 'target', dataType: 'flow', label: 'In' },
+                    { id: '4-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '4-to', type: 'target', dataType: 'string', label: 'To' },
+                    { id: '4-variables', type: 'target', dataType: 'json', label: 'Variables' },
+                    { id: '4-sent', type: 'source', dataType: 'boolean', label: 'Sent' }
+                ]
             }
         },
         // False branch - Regular path
@@ -60,12 +90,20 @@ export const conditionalServerWorkflow = buildWorkflow({
             position: { x: 400, y: 300 },
             data: {
                 label: 'Regular: 10% Discount',
+                description: 'Generate standard discount',
                 resource: 'discount',
                 operation: 'create',
                 payload: `{
   "code": "SAVE10",
   "percentage": 10
-}`
+}`,
+                handles: [
+                    { id: '5-flow-in', type: 'target', dataType: 'flow', label: 'In' },
+                    { id: '5-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '5-credential', type: 'target', dataType: 'string', label: 'Credential' },
+                    { id: '5-payload', type: 'target', dataType: 'json', label: 'Payload' },
+                    { id: '5-data', type: 'source', dataType: 'json', label: 'Response' }
+                ]
             }
         },
         {
@@ -74,8 +112,16 @@ export const conditionalServerWorkflow = buildWorkflow({
             position: { x: 400, y: 400 },
             data: {
                 label: 'Regular: Standard Email',
+                description: 'Send standard offer email',
                 provider: 'sendgrid',
-                templateId: 'standard_offer'
+                templateId: 'standard_offer',
+                handles: [
+                    { id: '6-flow-in', type: 'target', dataType: 'flow', label: 'In' },
+                    { id: '6-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '6-to', type: 'target', dataType: 'string', label: 'To' },
+                    { id: '6-variables', type: 'target', dataType: 'json', label: 'Variables' },
+                    { id: '6-sent', type: 'source', dataType: 'boolean', label: 'Sent' }
+                ]
             }
         },
         // Convergence
@@ -85,7 +131,13 @@ export const conditionalServerWorkflow = buildWorkflow({
             position: { x: 250, y: 500 },
             data: {
                 label: 'Log Completion',
-                eventName: 'offer_sent'
+                description: 'Track offer completion',
+                eventName: 'offer_sent',
+                handles: [
+                    { id: '7-flow-in', type: 'target', dataType: 'flow', label: 'In' },
+                    { id: '7-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '7-event-data', type: 'target', dataType: 'json', label: 'Event Data' }
+                ]
             }
         }
     ],

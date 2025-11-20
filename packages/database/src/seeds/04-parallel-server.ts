@@ -13,7 +13,14 @@ export const parallelServerWorkflow = buildWorkflow({
             id: '1',
             type: 'start',
             position: { x: 250, y: 100 },
-            data: { label: 'Start' }
+            data: {
+                label: 'Start',
+                description: 'Multi-channel workflow entry',
+                handles: [
+                    { id: '1-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '1-context', type: 'source', dataType: 'json', label: 'Context' }
+                ]
+            }
         },
         {
             id: '2',
@@ -21,7 +28,13 @@ export const parallelServerWorkflow = buildWorkflow({
             position: { x: 250, y: 200 },
             data: {
                 label: 'Log Event',
-                eventName: 'split_start'
+                description: 'Track split initiation',
+                eventName: 'split_start',
+                handles: [
+                    { id: '2-flow-in', type: 'target', dataType: 'flow', label: 'In' },
+                    { id: '2-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '2-event-data', type: 'target', dataType: 'json', label: 'Event Data' }
+                ]
             }
         },
         // Branch A - Analytics path
@@ -31,7 +44,13 @@ export const parallelServerWorkflow = buildWorkflow({
             position: { x: 100, y: 300 },
             data: {
                 label: 'Track Conversion',
-                eventName: 'conversion_tracked'
+                description: 'Log conversion metrics',
+                eventName: 'conversion_tracked',
+                handles: [
+                    { id: '3-flow-in', type: 'target', dataType: 'flow', label: 'In' },
+                    { id: '3-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '3-event-data', type: 'target', dataType: 'json', label: 'Event Data' }
+                ]
             }
         },
         {
@@ -40,7 +59,13 @@ export const parallelServerWorkflow = buildWorkflow({
             position: { x: 100, y: 400 },
             data: {
                 label: 'Log Attribution',
-                eventName: 'attribution_logged'
+                description: 'Track attribution data',
+                eventName: 'attribution_logged',
+                handles: [
+                    { id: '4-flow-in', type: 'target', dataType: 'flow', label: 'In' },
+                    { id: '4-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '4-event-data', type: 'target', dataType: 'json', label: 'Event Data' }
+                ]
             }
         },
         // Branch B - Email path
@@ -50,12 +75,20 @@ export const parallelServerWorkflow = buildWorkflow({
             position: { x: 400, y: 300 },
             data: {
                 label: 'Generate Code',
+                description: 'Create discount code',
                 resource: 'discount',
                 operation: 'create',
                 payload: `{
   "code": "PARALLEL",
   "percentage": 15
-}`
+}`,
+                handles: [
+                    { id: '5-flow-in', type: 'target', dataType: 'flow', label: 'In' },
+                    { id: '5-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '5-credential', type: 'target', dataType: 'string', label: 'Credential' },
+                    { id: '5-payload', type: 'target', dataType: 'json', label: 'Payload' },
+                    { id: '5-data', type: 'source', dataType: 'json', label: 'Response' }
+                ]
             }
         },
         {
@@ -64,8 +97,17 @@ export const parallelServerWorkflow = buildWorkflow({
             position: { x: 400, y: 400 },
             data: {
                 label: 'Send Email',
+                description: 'Email completion notification',
                 provider: 'sendgrid',
-                templateId: 'parallel_complete'
+                templateId: 'parallel_complete',
+                handles: [
+                    { id: '6-flow-in', type: 'target', dataType: 'flow', label: 'In' },
+                    { id: '6-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '6-to', type: 'target', dataType: 'string', label: 'To' },
+                    { id: '6-variables', type: 'target', dataType: 'json', label: 'Variables' },
+                    { id: '6-recipient', type: 'source', dataType: 'string', label: 'Recipient' },
+                    { id: '6-sent', type: 'source', dataType: 'boolean', label: 'Sent' }
+                ]
             }
         },
         // Convergence node - marks workflow complete
@@ -75,7 +117,13 @@ export const parallelServerWorkflow = buildWorkflow({
             position: { x: 250, y: 500 },
             data: {
                 label: 'All Channels Complete',
-                eventName: 'multi_channel_complete'
+                description: 'Track multi-channel completion',
+                eventName: 'multi_channel_complete',
+                handles: [
+                    { id: '7-flow-in', type: 'target', dataType: 'flow', label: 'In' },
+                    { id: '7-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '7-properties', type: 'target', dataType: 'json', label: 'Properties' }
+                ]
             }
         }
     ],

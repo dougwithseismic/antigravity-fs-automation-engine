@@ -13,7 +13,14 @@ export const clientLinearWorkflow = buildWorkflow({
             id: '1',
             type: 'start',
             position: { x: 100, y: 100 },
-            data: { label: 'Start' },
+            data: {
+                label: 'Start',
+                description: 'User onboarding entry point',
+                handles: [
+                    { id: '1-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '1-context', type: 'source', dataType: 'json', label: 'Context' }
+                ]
+            },
             environment: 'client'
         },
         {
@@ -22,7 +29,15 @@ export const clientLinearWorkflow = buildWorkflow({
             position: { x: 100, y: 200 },
             data: {
                 label: 'Collect Email',
-                message: 'Enter your email to continue'
+                description: 'Capture user email address',
+                message: 'Enter your email to continue',
+                handles: [
+                    { id: '2-flow-in', type: 'target', dataType: 'flow', label: 'In' },
+                    { id: '2-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '2-message', type: 'target', dataType: 'string', label: 'Message' },
+                    { id: '2-email', type: 'source', dataType: 'string', label: 'Email' },
+                    { id: '2-form-data', type: 'source', dataType: 'json', label: 'Form Data' }
+                ]
             },
             environment: 'client'
         },
@@ -32,7 +47,13 @@ export const clientLinearWorkflow = buildWorkflow({
             position: { x: 100, y: 300 },
             data: {
                 label: 'Show Thank You',
-                message: 'Thank you for subscribing!'
+                description: 'Display thank you message',
+                message: 'Thank you for subscribing!',
+                handles: [
+                    { id: '3-flow-in', type: 'target', dataType: 'flow', label: 'In' },
+                    { id: '3-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '3-message', type: 'target', dataType: 'string', label: 'Message' }
+                ]
             },
             environment: 'client'
         },
@@ -42,7 +63,13 @@ export const clientLinearWorkflow = buildWorkflow({
             position: { x: 100, y: 400 },
             data: {
                 label: 'Show Confirmation',
-                message: 'Check your email for confirmation'
+                description: 'Remind user to check email',
+                message: 'Check your email for confirmation',
+                handles: [
+                    { id: '4-flow-in', type: 'target', dataType: 'flow', label: 'In' },
+                    { id: '4-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '4-message', type: 'target', dataType: 'string', label: 'Message' }
+                ]
             },
             environment: 'client'
         }

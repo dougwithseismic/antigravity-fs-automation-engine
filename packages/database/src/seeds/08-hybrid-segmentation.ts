@@ -13,7 +13,14 @@ export const hybridSegmentationWorkflow = buildWorkflow({
             id: '1',
             type: 'start',
             position: { x: 300, y: 100 },
-            data: { label: 'Start' }
+            data: {
+                label: 'Start',
+                description: 'Segmentation entry point',
+                handles: [
+                    { id: '1-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '1-context', type: 'source', dataType: 'json', label: 'Context' }
+                ]
+            }
         },
         {
             id: '2',
@@ -21,7 +28,15 @@ export const hybridSegmentationWorkflow = buildWorkflow({
             position: { x: 300, y: 200 },
             data: {
                 label: 'Collect User Info',
-                message: 'Enter your details to see your personalized offer'
+                description: 'Collect user details for personalization',
+                message: 'Enter your details to see your personalized offer',
+                handles: [
+                    { id: '2-flow-in', type: 'target', dataType: 'flow', label: 'In' },
+                    { id: '2-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '2-message', type: 'target', dataType: 'string', label: 'Message' },
+                    { id: '2-email', type: 'source', dataType: 'string', label: 'Email' },
+                    { id: '2-form-data', type: 'source', dataType: 'json', label: 'Form Data' }
+                ]
             },
             environment: 'client'
         },
@@ -31,7 +46,13 @@ export const hybridSegmentationWorkflow = buildWorkflow({
             position: { x: 300, y: 300 },
             data: {
                 label: 'Log Submission',
-                eventName: 'form_submitted'
+                description: 'Track form submission',
+                eventName: 'form_submitted',
+                handles: [
+                    { id: '3-flow-in', type: 'target', dataType: 'flow', label: 'In' },
+                    { id: '3-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '3-event-data', type: 'target', dataType: 'json', label: 'Event Data' }
+                ]
             }
         },
         {
@@ -40,11 +61,18 @@ export const hybridSegmentationWorkflow = buildWorkflow({
             position: { x: 300, y: 400 },
             data: {
                 label: 'Check if VIP',
+                description: 'Evaluate VIP status from email',
                 condition: {
                     key: 'email',
                     operator: 'contains',
                     value: 'vip'
-                }
+                },
+                handles: [
+                    { id: '4-flow-in', type: 'target', dataType: 'flow', label: 'In' },
+                    { id: '4-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '4-value', type: 'target', dataType: 'string', label: 'Value' },
+                    { id: '4-result', type: 'source', dataType: 'boolean', label: 'Result' }
+                ]
             }
         },
         // VIP Path
@@ -54,8 +82,15 @@ export const hybridSegmentationWorkflow = buildWorkflow({
             position: { x: 150, y: 500 },
             data: {
                 label: 'VIP: 30% Discount',
+                description: 'Generate VIP discount code',
                 prefix: 'VIP30',
-                percentage: 30
+                percentage: 30,
+                handles: [
+                    { id: '5-flow-in', type: 'target', dataType: 'flow', label: 'In' },
+                    { id: '5-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '5-properties', type: 'target', dataType: 'json', label: 'Properties' },
+                    { id: '5-code', type: 'source', dataType: 'string', label: 'Code' }
+                ]
             }
         },
         {
@@ -64,7 +99,13 @@ export const hybridSegmentationWorkflow = buildWorkflow({
             position: { x: 150, y: 600 },
             data: {
                 label: 'VIP: Premium Offer',
-                message: '🌟 Welcome VIP! Your exclusive code: {{code}}'
+                description: 'Show premium VIP offer',
+                message: '🌟 Welcome VIP! Your exclusive code: {{code}}',
+                handles: [
+                    { id: '6-flow-in', type: 'target', dataType: 'flow', label: 'In' },
+                    { id: '6-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '6-message', type: 'target', dataType: 'string', label: 'Message' }
+                ]
             },
             environment: 'client'
         },
@@ -75,8 +116,15 @@ export const hybridSegmentationWorkflow = buildWorkflow({
             position: { x: 450, y: 500 },
             data: {
                 label: 'Regular: 10% Discount',
+                description: 'Generate standard discount code',
                 prefix: 'SAVE10',
-                percentage: 10
+                percentage: 10,
+                handles: [
+                    { id: '7-flow-in', type: 'target', dataType: 'flow', label: 'In' },
+                    { id: '7-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '7-properties', type: 'target', dataType: 'json', label: 'Properties' },
+                    { id: '7-code', type: 'source', dataType: 'string', label: 'Code' }
+                ]
             }
         },
         {
@@ -85,7 +133,13 @@ export const hybridSegmentationWorkflow = buildWorkflow({
             position: { x: 450, y: 600 },
             data: {
                 label: 'Regular: Standard Offer',
-                message: 'Thanks! Your discount code: {{code}}'
+                description: 'Show standard offer',
+                message: 'Thanks! Your discount code: {{code}}',
+                handles: [
+                    { id: '8-flow-in', type: 'target', dataType: 'flow', label: 'In' },
+                    { id: '8-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '8-message', type: 'target', dataType: 'string', label: 'Message' }
+                ]
             },
             environment: 'client'
         },
@@ -96,7 +150,13 @@ export const hybridSegmentationWorkflow = buildWorkflow({
             position: { x: 300, y: 700 },
             data: {
                 label: 'Log Conversion',
-                eventName: 'offer_shown'
+                description: 'Track offer shown event',
+                eventName: 'offer_shown',
+                handles: [
+                    { id: '9-flow-in', type: 'target', dataType: 'flow', label: 'In' },
+                    { id: '9-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '9-event-data', type: 'target', dataType: 'json', label: 'Event Data' }
+                ]
             }
         }
     ],

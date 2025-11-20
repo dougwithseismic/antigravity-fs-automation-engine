@@ -13,7 +13,14 @@ export const parallelMixedWorkflow = buildWorkflow({
             id: '1',
             type: 'start',
             position: { x: 250, y: 100 },
-            data: { label: 'Start' }
+            data: {
+                label: 'Start',
+                description: 'Survey entry point',
+                handles: [
+                    { id: '1-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '1-context', type: 'source', dataType: 'json', label: 'Context' }
+                ]
+            }
         },
         {
             id: '2',
@@ -21,7 +28,13 @@ export const parallelMixedWorkflow = buildWorkflow({
             position: { x: 250, y: 200 },
             data: {
                 label: 'Log Split',
-                eventName: 'parallel_split'
+                description: 'Track parallel execution start',
+                eventName: 'parallel_split',
+                handles: [
+                    { id: '2-flow-in', type: 'target', dataType: 'flow', label: 'In' },
+                    { id: '2-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '2-event-data', type: 'target', dataType: 'json', label: 'Event Data' }
+                ]
             }
         },
         // Branch A - Server only
@@ -31,12 +44,20 @@ export const parallelMixedWorkflow = buildWorkflow({
             position: { x: 100, y: 300 },
             data: {
                 label: 'Server: Generate Code',
+                description: 'Create automatic discount code',
                 resource: 'discount',
                 operation: 'create',
                 payload: `{
   "code": "AUTO",
   "percentage": 10
-}`
+}`,
+                handles: [
+                    { id: '3-flow-in', type: 'target', dataType: 'flow', label: 'In' },
+                    { id: '3-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '3-credential', type: 'target', dataType: 'string', label: 'Credential' },
+                    { id: '3-payload', type: 'target', dataType: 'json', label: 'Payload' },
+                    { id: '3-data', type: 'source', dataType: 'json', label: 'Response' }
+                ]
             }
         },
         {
@@ -45,8 +66,17 @@ export const parallelMixedWorkflow = buildWorkflow({
             position: { x: 100, y: 400 },
             data: {
                 label: 'Server: Send Email',
+                description: 'Send automated email notification',
                 provider: 'klaviyo',
-                templateId: 'auto_send'
+                templateId: 'auto_send',
+                handles: [
+                    { id: '4-flow-in', type: 'target', dataType: 'flow', label: 'In' },
+                    { id: '4-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '4-to', type: 'target', dataType: 'string', label: 'To' },
+                    { id: '4-variables', type: 'target', dataType: 'json', label: 'Variables' },
+                    { id: '4-recipient', type: 'source', dataType: 'string', label: 'Recipient' },
+                    { id: '4-sent', type: 'source', dataType: 'boolean', label: 'Sent' }
+                ]
             }
         },
         // Branch B - Client suspended
@@ -56,7 +86,15 @@ export const parallelMixedWorkflow = buildWorkflow({
             position: { x: 400, y: 300 },
             data: {
                 label: 'Client: Collect Feedback',
-                message: 'How did we do?'
+                description: 'Display feedback collection form',
+                message: 'How did we do?',
+                handles: [
+                    { id: '5-flow-in', type: 'target', dataType: 'flow', label: 'In' },
+                    { id: '5-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '5-message', type: 'target', dataType: 'string', label: 'Message' },
+                    { id: '5-email', type: 'source', dataType: 'string', label: 'Email' },
+                    { id: '5-form-data', type: 'source', dataType: 'json', label: 'Form Data' }
+                ]
             },
             environment: 'client'
         },
@@ -66,7 +104,13 @@ export const parallelMixedWorkflow = buildWorkflow({
             position: { x: 400, y: 400 },
             data: {
                 label: 'Client: Show Thanks',
-                message: 'Thanks for your feedback!'
+                description: 'Display thank you message',
+                message: 'Thanks for your feedback!',
+                handles: [
+                    { id: '6-flow-in', type: 'target', dataType: 'flow', label: 'In' },
+                    { id: '6-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '6-message', type: 'target', dataType: 'string', label: 'Message' }
+                ]
             },
             environment: 'client'
         },
@@ -77,7 +121,13 @@ export const parallelMixedWorkflow = buildWorkflow({
             position: { x: 250, y: 500 },
             data: {
                 label: 'Survey Complete',
-                eventName: 'survey_complete'
+                description: 'Track survey completion',
+                eventName: 'survey_complete',
+                handles: [
+                    { id: '7-flow-in', type: 'target', dataType: 'flow', label: 'In' },
+                    { id: '7-flow-out', type: 'source', dataType: 'flow', label: 'Out' },
+                    { id: '7-event-data', type: 'target', dataType: 'json', label: 'Event Data' }
+                ]
             }
         }
     ],
