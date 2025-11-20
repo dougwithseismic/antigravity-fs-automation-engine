@@ -1,0 +1,548 @@
+import { Worker, Job } from 'bullmq';
+import { redisConnection } from '../config/redis';
+import { db } from '@repo/database';
+import { executionSteps, executions, workflows } from '@repo/database/schema';
+import { eq, and } from 'drizzle-orm';
+import { createLogger, withExecutionContext, Logger } from '@repo/logger';
+import {
+    nodeExecutionsTotal,
+    nodeExecutionDuration,
+    executionErrorsTotal,
+    activeExecutions,
+} from '@repo/metrics';
+
+// Import execution state service and node registry
+import { executionStateService } from '../services/execution-state';
+import { sandbox } from '../services/sandbox';
+import { nodeRegistry } from '../registry/node-registry';
+
+/**
+ * Execute node logic by type
+ * Special handling for CodeNode (uses sandbox), all others use registry
+ */
+const logger = createLogger({ name: 'node-worker' });
+
+const executeNodeLogic = async (nodeType: string, input: any, nodeData?: any, jobLogger?: Logger) => {
+    const log = jobLogger || logger;
+    log.debug({ nodeType, inputKeys: Object.keys(input) }, 'Executing node logic');
+
+    // Special case: CodeNode uses SandboxService
+    if (nodeType === 'code') {
+        const code = input.code || nodeData?.code;
+        if (!code) {
+            throw new Error('No code provided for CodeNode');
+        }
+
+        try {
+            const result = await sandbox.execute(code, { input });
+            return { status: 'completed', output: result };
+        } catch (error: any) {
+            throw new Error(`CodeNode execution failed: ${error.message}`);
+        }
+    }
+
+    // All other nodes: use registry
+    const nodeExecutor = nodeRegistry.get(nodeType);
+    if (!nodeExecutor) {
+        throw new Error(`Unknown node type: ${nodeType}`);
+    }
+
+    try {
+        // Execute node using its executor
+        // Note: nodeData is the `data` property of the WorkflowNode
+        const result = await nodeExecutor.execute({
+            node: {
+                id: 'temp', // Will be set by NodeWorker
+                type: nodeType,
+                position: { x: 0, y: 0 },
+                data: nodeData || {},
+            },
+            input,
+            context: {
+                workflowId: 0, // TODO: Pass from job data
+                executionId: 0, // TODO: Pass from job data
+                input: {},
+                results: {},
+            },
+        });
+
+        return {
+            status: result.status === 'success' ? 'completed' : result.status,
+            output: result.output,
+        };
+    } catch (error: any) {
+        throw new Error(`${nodeType} execution failed: ${error.message}`);
+    }
+};
+
+import { NODE_EXECUTION_QUEUE, getScheduledQueue, getNodeQueue } from '../config/queues';
+
+// ... (imports)
+
+const QUEUE_NAME = NODE_EXECUTION_QUEUE;
+
+export class NodeWorker {
+    private worker: Worker;
+
+    constructor() {
+        this.worker = new Worker(QUEUE_NAME, this.processJob.bind(this), {
+            connection: redisConnection,
+            concurrency: 10,
+        });
+
+        this.worker.on('completed', (job) => {
+            logger.info({ jobId: job.id, executionId: job.data.executionId, nodeId: job.data.nodeId }, 'Node job completed');
+        });
+
+        this.worker.on('failed', (job, err) => {
+            logger.error({ 
+                jobId: job?.id, 
+                executionId: job?.data?.executionId, 
+                nodeId: job?.data?.nodeId,
+                error: err.message,
+                stack: err.stack 
+            }, 'Node job failed');
+        });
+    }
+
+    async processJob(job: Job) {
+        const { executionId, nodeId, workflowId, input, attempt = 1 } = job.data;
+        const maxAttempts = 3;
+        
+        // Create child logger with execution context
+        const jobLogger = withExecutionContext(logger, {
+            executionId,
+            workflowId,
+            nodeId,
+            jobId: job.id,
+        });
+
+        jobLogger.info({ attempt, maxAttempts }, 'Processing node execution');
+
+        // 1. Check idempotency (from Redis state)
+        const currentState = await executionStateService.getState(executionId);
+        if (!currentState) {
+            throw new Error(`Execution state not found for ${executionId}`);
+        }
+
+        if (currentState.completedNodes.includes(nodeId)) {
+            jobLogger.info('Step already completed, skipping');
+            return currentState.stepsByNodeId[nodeId]?.output;
+        }
+
+        // 2. Update state: mark node as active
+        await executionStateService.updateState(executionId, {
+            addActiveNode: nodeId,
+        });
+
+        try {
+            // 3. Load workflow to get node type
+            const workflow = await db.query.workflows.findFirst({
+                where: eq(workflows.id, workflowId),
+            });
+
+            if (!workflow) throw new Error('Workflow not found');
+
+            const nodes = workflow.nodes as any[];
+            const nodeDef = nodes.find((n: any) => n.id === nodeId);
+
+            if (!nodeDef) throw new Error(`Node definition not found for ${nodeId}`);
+
+            // 4. Create step record (started)
+            const stepStartTime = new Date().toISOString();
+            const stepStartMs = Date.now();
+            
+            // Increment active executions gauge
+            activeExecutions.inc();
+            
+            await executionStateService.updateState(executionId, {
+                addStep: {
+                    nodeId,
+                    nodeType: nodeDef.type,
+                    status: 'running',
+                    output: {},
+                    startedAt: stepStartTime,
+                },
+            });
+
+            // 5. Execute node
+            jobLogger.debug({ nodeDef }, 'Loaded node definition');
+
+            let result;
+            try {
+                result = await executeNodeLogic(nodeDef.type, input, nodeDef.data, jobLogger);
+            } catch (error: any) {
+                // Handle unknown node type specifically - fail immediately, no retry
+                if (error.message.includes('Unknown node type')) {
+                    jobLogger.error({ error: error.message, stack: error.stack }, 'Unknown node type - configuration error');
+
+                    const stepEndTime = new Date().toISOString();
+                    await executionStateService.updateState(executionId, {
+                        status: 'failed',
+                        removeActiveNode: nodeId,
+                        updateStep: {
+                            nodeId,
+                            updates: {
+                                status: 'failed',
+                                completedAt: stepEndTime,
+                                duration: new Date(stepEndTime).getTime() - new Date(stepStartTime).getTime(),
+                                error: {
+                                    message: error.message,
+                                    stack: error.stack,
+                                },
+                            },
+                        },
+                    });
+                    await executionStateService.persistState(executionId, db);
+                    return; // Stop execution
+                }
+                throw error; // Re-throw other errors for retry logic
+            }
+
+            // 6. Update step with result
+            const stepEndTime = new Date().toISOString();
+            const stepStatus = result.status === 'failed' ? 'failed' :
+                              result.status === 'suspended' ? 'suspended' : 'completed';
+            
+            // Record metrics
+            const durationSeconds = (Date.now() - stepStartMs) / 1000;
+            nodeExecutionDuration.observe({ nodeType: nodeDef.type }, durationSeconds);
+            nodeExecutionsTotal.inc({ nodeType: nodeDef.type, status: stepStatus });
+            activeExecutions.dec();
+
+            await executionStateService.updateState(executionId, {
+                removeActiveNode: nodeId,
+                completedNode: nodeId,
+                updateStep: {
+                    nodeId,
+                    updates: {
+                        status: stepStatus,
+                        output: result.output,
+                        completedAt: stepEndTime,
+                        duration: new Date(stepEndTime).getTime() - new Date(stepStartTime).getTime(),
+                    },
+                },
+                status: result.status === 'failed' ? 'failed' : currentState.status,
+            });
+
+            // 6. Handle result based on status
+            if (result.status === 'suspended') {
+                // Check if this is a WaitNode (has resumeAfter) or a client node
+                if (result.output?.resumeAfter) {
+                    // WaitNode: enqueue delayed job
+                    await this.enqueueDelayedResume(workflowId, executionId, nodeId, result.output);
+                } else {
+                    // Client node: suspend execution and wait for resume request
+                    jobLogger.info('Execution suspended - awaiting client interaction');
+                    await executionStateService.updateState(executionId, {
+                        status: 'suspended',
+                        addActiveNode: nodeId, // Re-add as active (waiting)
+                    });
+                    await executionStateService.persistState(executionId, db);
+                    // Don't enqueue children - wait for resume
+                    // Return early - don't check for completion when suspended
+                    return result.output;
+                }
+            } else if (result.status === 'completed') {
+                // Normal node: enqueue children immediately
+                await this.enqueueChildren(workflowId, executionId, nodeId, result.output);
+            }
+
+            // 7. Check if workflow is complete (only for non-suspended nodes)
+            // Skip completion check ONLY if this exact node was just resumed (not descendants)
+            // Check if _resumedAt was added in THIS execution, not propagated from parent
+            const updatedState = await executionStateService.getState(executionId);
+            const nodeStep = updatedState?.stepsByNodeId?.[nodeId];
+
+            // Only skip if this node's result has _resumedAt AND it was added by the resume operation
+            // (check if it's in the node's own step result, not just propagated in output)
+            const wasDirectlyResumed = nodeStep?.output?._resumedAt !== undefined &&
+                result.output?._resumedAt === nodeStep.output._resumedAt;
+
+            if (!wasDirectlyResumed) {
+                const isComplete = await this.isWorkflowComplete(executionId, workflowId);
+                if (isComplete) {
+                    // Mark complete and persist to DB
+                    await executionStateService.updateState(executionId, {
+                        status: 'completed',
+                        activeNodes: [], // Clear all active nodes
+                    });
+                    await executionStateService.persistState(executionId, db);
+                    jobLogger.info('Workflow execution completed and persisted to database');
+                }
+            } else {
+                jobLogger.debug('Skipping completion check for resumed node - children still processing');
+            }
+
+            return result.output;
+
+        } catch (error: any) {
+            jobLogger.error({ 
+                error: error.message, 
+                stack: error.stack,
+                attempt,
+                maxAttempts 
+            }, 'Error executing node');
+
+            const errorDetails = {
+                message: error.message || String(error),
+                stack: error.stack,
+                nodeId,
+                attempt,
+                timestamp: new Date().toISOString(),
+            };
+
+            // Check if this is the final attempt
+            if (attempt >= maxAttempts) {
+                jobLogger.error({ errorDetails }, 'Max retries reached - marking execution as failed');
+                
+                // Record error metrics
+                const state = await executionStateService.getState(executionId);
+                const workflow = await db.query.workflows.findFirst({
+                    where: eq(workflows.id, workflowId),
+                });
+                const nodes = workflow?.nodes as any[] || [];
+                const nodeDef = nodes.find((n: any) => n.id === nodeId);
+                const nodeType = nodeDef?.type || 'unknown';
+                
+                executionErrorsTotal.inc({ errorType: 'max_retries', nodeType });
+                nodeExecutionsTotal.inc({ nodeType, status: 'failed' });
+                activeExecutions.dec();
+
+                // Mark as permanently failed
+                const failedStepEndTime = new Date().toISOString();
+                await executionStateService.updateState(executionId, {
+                    status: 'failed',
+                    removeActiveNode: nodeId,
+                    updateStep: {
+                        nodeId,
+                        updates: {
+                            status: 'failed',
+                            completedAt: failedStepEndTime,
+                            error: errorDetails,
+                        },
+                    },
+                });
+                await executionStateService.persistState(executionId, db);
+
+                // Don't re-throw - prevents further retries
+                return;
+            }
+
+            // Store error for this attempt but allow retry
+            await executionStateService.updateState(executionId, {
+                updateStep: {
+                    nodeId,
+                    updates: {
+                        error: { ...errorDetails, retrying: true },
+                    },
+                },
+            });
+
+            throw error; // Re-throw for BullMQ retry
+        }
+    }
+
+    private async isWorkflowComplete(executionId: number, workflowId: number): Promise<boolean> {
+        const state = await executionStateService.getState(executionId);
+        if (!state) return false;
+
+        // Load workflow to check for remaining edges
+        const workflow = await db.query.workflows.findFirst({
+            where: eq(workflows.id, workflowId),
+        });
+
+        if (!workflow) return false;
+
+        const edges = workflow.edges as any[];
+
+        // Check if there are any executable edges remaining
+        // An edge is executable if:
+        // 1. Its source node has been completed
+        // 2. Its target node hasn't been completed yet
+        // 3. If the source node has condition results, the edge condition matches
+        for (const completedNodeId of state.completedNodes) {
+            const outgoingEdges = edges.filter((e: any) => e.source === completedNodeId);
+
+            for (const edge of outgoingEdges) {
+                // Skip if target already completed
+                if (state.completedNodes.includes(edge.target)) continue;
+
+                // Check if this edge should be followed based on condition
+                const nodeStep = state.stepsByNodeId?.[completedNodeId];
+                if (nodeStep?.output?.result !== undefined) {
+                    // If edge has no condition property, skip it
+                    if (!edge.condition) continue;
+
+                    // Convert edge condition to boolean
+                    const edgeCondition = edge.condition === 'true' || edge.condition === true;
+
+                    // Only follow if condition matches
+                    if (edgeCondition !== nodeStep.output.result) continue;
+                }
+
+                // Found an executable edge - workflow is not complete
+                return false;
+            }
+        }
+
+        // No executable edges found - workflow is complete
+        return true;
+    }
+
+    async enqueueChildren(workflowId: number, executionId: number, parentNodeId: string, output: any) {
+        const workflow = await db.query.workflows.findFirst({
+            where: eq(workflows.id, workflowId),
+        });
+
+        if (!workflow) return;
+
+        const edges = workflow.edges as any[];
+        let childEdges = edges.filter((e: any) => e.source === parentNodeId);
+
+        // Filter edges based on condition results ONLY if this is a condition node
+        // Check if the parent node is a condition node by looking it up
+        const nodes = workflow.nodes as any[];
+        const parentNode = nodes.find((n: any) => n.id === parentNodeId);
+        const isConditionNode = parentNode?.type === 'condition';
+
+        if (isConditionNode && output.result !== undefined) {
+            const conditionResult = output.result;
+            childEdges = childEdges.filter((e: any) => {
+                // If edge has no condition property, skip it (it won't be followed after a condition node)
+                if (!e.condition) return false;
+
+                // Convert edge condition to boolean
+                const edgeCondition = e.condition === 'true' || e.condition === true;
+
+                // Include edge if its condition matches the result
+                return edgeCondition === conditionResult;
+            });
+
+            logger.debug({ conditionResult, edgeCount: childEdges.length, parentNodeId }, 'Filtered edges based on condition result');
+        }
+
+        // Use singleton queue instance instead of creating new one
+        const nodeQueue = getNodeQueue();
+
+        // Get state to build merged input from all previous steps
+        const state = await executionStateService.getState(executionId);
+        if (!state) throw new Error(`Execution state not found: ${executionId}`);
+
+        // Build input from all completed steps (for accessing previous node outputs)
+        const mergedInput = (state.steps || []).reduce((acc, step) => {
+            return { ...acc, ...step.output };
+        }, {});
+
+        for (const edge of childEdges) {
+            // Get target node to check for custom retry config
+            const targetNode = nodes.find((n: any) => n.id === edge.target);
+            const nodeType = targetNode?.type;
+
+            // Get retry config from node executor if available
+            let retryConfig: { attempts: number; backoff: { type: 'fixed' | 'exponential'; delay: number } } = {
+                attempts: 3,
+                backoff: { type: 'exponential', delay: 1000 }
+            };
+            if (nodeType) {
+                const nodeExecutor = nodeRegistry.get(nodeType);
+                if (nodeExecutor?.retry) {
+                    const backoff = nodeExecutor.retry.backoff || { type: 'exponential', delay: 1000 };
+                    retryConfig = {
+                        attempts: nodeExecutor.retry.attempts || 3,
+                        backoff: {
+                            type: backoff.type || 'exponential',
+                            delay: backoff.delay || 1000,
+                        },
+                    };
+                }
+            }
+
+            await nodeQueue.add('execute-node', {
+                executionId,
+                nodeId: edge.target,
+                workflowId,
+                input: mergedInput, // Pass merged outputs as input to child
+                attempt: 1,
+            }, {
+                jobId: `exec-${executionId}-node-${edge.target}`,
+                attempts: retryConfig.attempts,
+                backoff: retryConfig.backoff,
+            });
+            logger.debug({
+                targetNodeId: edge.target,
+                executionId,
+                workflowId,
+                nodeType,
+                retryConfig
+            }, 'Enqueued child node with retry config');
+        }
+
+        // Don't close singleton queue instance
+    }
+
+    /**
+     * Enqueue delayed resume job for WaitNode
+     */
+    async enqueueDelayedResume(workflowId: number, executionId: number, nodeId: string, output: any) {
+        const { resumeAfter } = output;
+        if (!resumeAfter) {
+            throw new Error('WaitNode output missing resumeAfter');
+        }
+
+        // Calculate delay in milliseconds
+        const { amount, unit } = resumeAfter;
+        let delayMs = 0;
+
+        switch (unit) {
+            case 'seconds':
+                delayMs = amount * 1000;
+                break;
+            case 'minutes':
+                delayMs = amount * 60 * 1000;
+                break;
+            case 'hours':
+                delayMs = amount * 60 * 60 * 1000;
+                break;
+            case 'days':
+                delayMs = amount * 24 * 60 * 60 * 1000;
+                break;
+            default:
+                delayMs = amount * 1000; // Default to seconds
+        }
+
+        logger.info({ amount, unit, delayMs, executionId, nodeId }, 'Scheduling delayed resume');
+
+        // Get child nodes
+        const workflow = await db.query.workflows.findFirst({
+            where: eq(workflows.id, workflowId),
+        });
+
+        if (!workflow) return;
+
+        const edges = workflow.edges as any[];
+        const childEdges = edges.filter((e: any) => e.source === nodeId);
+
+        // Enqueue delayed job in scheduled-resume-queue
+        const scheduledQueue = getScheduledQueue();
+
+        await scheduledQueue.add('resume-execution', {
+            executionId,
+            nodeId,
+            nextNodes: childEdges.map((e: any) => ({
+                nodeId: e.target,
+                workflowId,
+                input: output,
+            })),
+        }, {
+            delay: delayMs,
+            jobId: `scheduled-${executionId}-${nodeId}-${Date.now()}`,
+        });
+
+        logger.info({ executionId, nodeId, delayMs, nextNodeCount: childEdges.length }, 'Scheduled resume job');
+    }
+
+    async close(): Promise<void> {
+        await this.worker.close();
+    }
+}
