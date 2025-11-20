@@ -46,7 +46,7 @@ export interface ExecutionStep {
     startedAt: string;
     completedAt?: string;
     duration?: number;
-    error?: { message: string; stack?: string };
+    error?: { message: string; stack?: string; retrying?: boolean };
 }
 
 export interface ExecutionContext {

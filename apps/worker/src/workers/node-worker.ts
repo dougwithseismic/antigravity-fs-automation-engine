@@ -1,9 +1,10 @@
 import { Worker, Job } from 'bullmq';
 import { redisConnection } from '../config/redis';
 import { db } from '@repo/database';
-import { executionSteps, executions, workflows } from '@repo/database/schema';
-import { eq, and } from 'drizzle-orm';
+import { executions, workflows } from '@repo/database/schema';
+import { eq } from 'drizzle-orm';
 import { createLogger, withExecutionContext, Logger } from '@repo/logger';
+import { nodeExecutionCounter, nodeExecutionDuration } from '@repo/metrics';
 
 // Import execution state service and node registry
 import { executionStateService } from '../services/execution-state';
@@ -102,6 +103,8 @@ export class NodeWorker {
     async processJob(job: Job) {
         const { executionId, nodeId, workflowId, input, attempt = 1 } = job.data;
         const maxAttempts = 3;
+        let nodeTypeLabel = 'unknown';
+        let stepStartTime: string | null = null;
         
         // Create child logger with execution context
         const jobLogger = withExecutionContext(logger, {
@@ -141,9 +144,10 @@ export class NodeWorker {
             const nodeDef = nodes.find((n: any) => n.id === nodeId);
 
             if (!nodeDef) throw new Error(`Node definition not found for ${nodeId}`);
+            nodeTypeLabel = nodeDef.type;
 
             // 4. Create step record (started)
-            const stepStartTime = new Date().toISOString();
+            stepStartTime = new Date().toISOString();
             await executionStateService.updateState(executionId, {
                 addStep: {
                     nodeId,
@@ -166,6 +170,9 @@ export class NodeWorker {
                     jobLogger.error({ error: error.message, stack: error.stack }, 'Unknown node type - configuration error');
 
                     const stepEndTime = new Date().toISOString();
+                    const stepDurationSeconds = stepStartTime
+                        ? (new Date(stepEndTime).getTime() - new Date(stepStartTime).getTime()) / 1000
+                        : 0;
                     await executionStateService.updateState(executionId, {
                         status: 'failed',
                         removeActiveNode: nodeId,
@@ -183,6 +190,8 @@ export class NodeWorker {
                         },
                     });
                     await executionStateService.persistState(executionId, db);
+                    nodeExecutionCounter.labels(nodeTypeLabel, 'failed').inc();
+                    nodeExecutionDuration.observe({ nodeType: nodeTypeLabel, status: 'failed' }, stepDurationSeconds);
                     return; // Stop execution
                 }
                 throw error; // Re-throw other errors for retry logic
@@ -192,6 +201,9 @@ export class NodeWorker {
             const stepEndTime = new Date().toISOString();
             const stepStatus = result.status === 'failed' ? 'failed' :
                               result.status === 'suspended' ? 'suspended' : 'completed';
+            const stepDurationSeconds = stepStartTime
+                ? (new Date(stepEndTime).getTime() - new Date(stepStartTime).getTime()) / 1000
+                : 0;
 
             await executionStateService.updateState(executionId, {
                 removeActiveNode: nodeId,
@@ -207,6 +219,9 @@ export class NodeWorker {
                 },
                 status: result.status === 'failed' ? 'failed' : currentState.status,
             });
+
+            nodeExecutionCounter.labels(nodeTypeLabel, stepStatus).inc();
+            nodeExecutionDuration.observe({ nodeType: nodeTypeLabel, status: stepStatus }, stepDurationSeconds);
 
             // 6. Handle result based on status
             if (result.status === 'suspended') {
@@ -266,6 +281,13 @@ export class NodeWorker {
                 attempt,
                 maxAttempts 
             }, 'Error executing node');
+
+            const errorStatus = attempt >= maxAttempts ? 'failed' : 'retrying';
+            if (stepStartTime) {
+                const errorDurationSeconds = (Date.now() - new Date(stepStartTime).getTime()) / 1000;
+                nodeExecutionDuration.observe({ nodeType: nodeTypeLabel, status: errorStatus }, errorDurationSeconds);
+            }
+            nodeExecutionCounter.labels(nodeTypeLabel, errorStatus).inc();
 
             const errorDetails = {
                 message: error.message || String(error),

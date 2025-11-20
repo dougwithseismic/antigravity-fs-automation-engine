@@ -12,9 +12,11 @@
         "type-check": "tsc --noEmit"
     },
     "dependencies": {
+        "@antigravity/nodes": "workspace:*",
         "@repo/database": "workspace:*",
         "@repo/logger": "workspace:*",
-        "@antigravity/nodes": "workspace:*",
+        "@repo/metrics": "workspace:*",
+        "@repo/types": "workspace:^",
         "bullmq": "^5.4.0",
         "dotenv": "^16.4.5",
         "drizzle-orm": "^0.30.0",
